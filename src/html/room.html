@@ -1,0 +1,83 @@
+<!-- The virtual room page of Virtual room -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>Virtual Room-P2PSP</title>
+
+  <!-- CSS  -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+<body>
+  <nav class="grey darken-4 lighten-1" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><img src="../img/p2psp-2.png" width="110" height="55"></img></a>
+    <ul class="right hide-on-med-and-down">
+        <li><a href="index.html">Leave Room</a></li>
+      </ul>
+      <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
+    </div>
+  </nav>
+
+<!-- Main video stream section -->
+
+  <div class="section no-pad-bot row center" id="index-banner">
+    <div class="container row center" id="index-banner">
+    <input type="file" id="video-file" accept="video">
+    <video id="video-stream" controls width="1280">
+      <source id="video-source" src="../bbb-cbr-1300-frag.mp4" type="video/mp4">
+    </video>
+    </div>
+<!-- Video stream section ends -->
+
+<!-- changing dimensions of the player -->
+    <div class="row">
+      <form class="col s6">
+        <div class="row">
+          <div class="input-field col s3">
+            <input id="width-input" type="number" class="validate">
+            <label for="width">Width</label>
+            <a id="width-change" onclick="widthChange()" class="btn-flat waves-effect waves-light red">Change</a>
+          </div>
+          <div class="input-field col s3">
+            <input id="height-input" type="number" class="validate">
+            <label for="height">Height</label>
+            <a id="height-change" onclick="heightChange()" class="btn-flat waves-effect waves-light red">Change</a>
+          </div>
+          <div class="row right">
+            <a id="stream" onclick="streamVideo()" class="btn disabled">Stream!</a>
+          </div>
+        </div>
+    </div> 
+
+  </div>
+
+<!-- Footer -->
+  <footer class="page-footer light-blue lighten-1">
+    <div class="container">
+      <div class="row">
+        <div class="col m8 s12">
+          <h5 class="white-text">P2PSP</h5>
+          <p class="grey-text text-lighten-4">P2PSP.org is a nonprofit organization that develops, among other things, the P2PSP protocol. P2PSP is an application layer protocol designed for the real-time streaming of multimedia content over the Internet. P2PSP is free, open, Creative Common Attribution-sharealike 4 International licensed. Among our objectives are deployment of streaming video services, real-time video recording and transmission tools, social streaming, application-layer IP multicast on the global Internet, secure communications, etc.</p>
+
+
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+      Made at <a class="orange-text text-lighten-3" href="http://p2psp.org">P2PSP</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!--  Scripts-->
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="../js/materialize.min.js"></script>
+  <script src="../js/init.js"></script>
+  <script src="../js/room.js"></script>
+  </body>
+</html>
