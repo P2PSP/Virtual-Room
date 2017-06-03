@@ -2,6 +2,7 @@ var vid = document.getElementById("video-stream"); // Video to be streamed
 var widthInput = document.getElementById("width-input");
 var heightInput = document.getElementById("height-input");
 var vidFile = document.getElementById("video-file");
+var broadcastURL = document.getElementById("broadcast-url");
 
 // Filling placeholders after the video has been loaded
 vid.addEventListener("loadedmetadata", function(e){
@@ -26,9 +27,23 @@ vidFile.onchange = function(){
     };
 
 function streamVideo(){
+	// Make a separate function to load the video and call it in the main streaVideo() function
 	console.log(vidFile.value);
 	var source = document.getElementById("video-source");
 	var vidURL = URL.createObjectURL(vidFile.files[0]);
 	vid.src = vidURL;
 	vid.play();
+};
+
+function copyBroadcastURL(){
+	generateURL();
+	var range = document.createRange();
+	range.selectNode(broadcastURL)
+	window.getSelection().addRange(range);
+	document.execCommand("copy");
+};
+
+// Function to be modified to contain logic of generating url
+function generateURL(){
+	broadcastURL.innerText = "http://p2psp.org";
 }

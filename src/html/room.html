@@ -25,8 +25,16 @@
 
   <div class="section no-pad-bot row center" id="index-banner">
     <div class="container row center" id="index-banner">
-    <input type="file" id="video-file" accept="video">
-    <video id="video-stream" controls width="1280">
+        <div class="file-field input-field">
+          <div class="btn">
+            <span>File</span>
+            <input type="file" id="video-file" accept="video">
+          </div>
+          <div class="file-path-wrapper">
+            <input class="file-path validate" type="text" placeholder="Upload a video to stream">
+          </div>
+        </div>
+    <video class="responsive-video" id="video-stream" controls width="100%">
       <source id="video-source" src="../bbb-cbr-1300-frag.mp4" type="video/mp4">
     </video>
     </div>
@@ -34,24 +42,36 @@
 
 <!-- changing dimensions of the player -->
     <div class="row">
-      <form class="col s6">
-        <div class="row">
+      <form class="col s12">
+        <div class="row col s6">
           <div class="input-field col s3">
             <input id="width-input" type="number" class="validate">
-            <label for="width">Width</label>
-            <a id="width-change" onclick="widthChange()" class="btn-flat waves-effect waves-light red">Change</a>
+            <label for="width-input" class="active">Width</label>
+            <a id="width-change" onclick="widthChange()" class="btn-flat waves-effect waves-light red row left">Change</a>
           </div>
           <div class="input-field col s3">
             <input id="height-input" type="number" class="validate">
             <label for="height">Height</label>
-            <a id="height-change" onclick="heightChange()" class="btn-flat waves-effect waves-light red">Change</a>
-          </div>
-          <div class="row right">
-            <a id="stream" onclick="streamVideo()" class="btn disabled">Stream!</a>
+            <a id="height-change" onclick="heightChange()" class="btn-flat waves-effect waves-light red row left">Change</a>
           </div>
         </div>
+        <div class="row left col s3  pull-s2">
+            <a id="stream" onclick="streamVideo()" class="btn disabled">Stream!</a>
+        </div>
+            <div class="card-panel grey lighten-5 col s4 z-depth-1 hoverable row right" id="broadcast-url-copy"><a href="#broadcast-url-copy" onclick="copyBroadcastURL()">
+              <div>
+                <h5 class="center">Broadcast URL(Click to copy)</h5>
+                </div>
+                <div class="flow-text Calibri">
+                  <h5 class="center-align red-text" id="broadcast-url">
+                    Generating URL...
+                    <hr/>
+                  </h5>
+                </div>
+              </div>
+            </a>
+            </div>
     </div> 
-
   </div>
 
 <!-- Footer -->
