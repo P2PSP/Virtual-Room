@@ -13,9 +13,9 @@
 </head>
 <body>
   <nav class="grey darken-4 lighten-1" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><img src="../img/p2psp-2.png" width="110" height="55"></img></a>
-    <ul class="right hide-on-med-and-down">
-        <li onclick="disconnectPeer()"><a href="index.html">Leave Room</a></li>
+    <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
+      <ul class="right hide-on-med-and-down">
+        <li onclick="disconnectPeer()"><a href="index.html"><span class="blue-text text-darken-2">Leave Room</span></a></li>
       </ul>
       <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
     </div>
@@ -24,97 +24,84 @@
 <!-- Main video stream section -->
 
   <div class="section no-pad-bot row center" id="main-room-banner">
+    <style type="text/css">
+      body {
+        background: #8E0E00;  /* fallback for old browsers */
+        background: -webkit-linear-gradient(to right, #1F1C18, #8E0E00);  
+        background: linear-gradient(to right, #1F1C18, #8E0E00); 
+      }
+    </style>
     <div class="container row center" id="peer-media-banner">
         <div class="col s12">
           <div class="file-field input-field">
-            <div class="btn">
+            <div class="btn z-depth-3 red darken-4 col s2">
               <span>File</span>
               <input type="file" id="video-file" accept="video">
             </div>
-            <div class="file-path-wrapper col s6">
+            <div class="file-path-wrapper col s10">
               <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
-            </div>
-            <div class="card-panel grey lighten-5 col s5 z-depth-1 hoverable row right">
-              <div class="col s6">
-                <h5>Peers in the room</h5>
-              </div>
-              <div class="col s1">
-                <h5 id="peer-num" class="red-text">1</h5>
-              </div>
             </div>
           </div>
         </div>
-      <video class="responsive-video" id="video-stream" controls width="100%">
-        <source id="video-source" src="../bbb-cbr-1300-frag.mp4" type="video/mp4">
-      </video>
-      <div class="col s4">
-        <video height="150">
-          <source id="peer-test-1" src="../bbb-cbr-1300-frag.mp4" type="video/mp4"> <!-- id and src will be changed accordingly -->
-        </video>
-      </div>
-      <div class="col s4">
-        <video height="150">
-          <source id="peer-test-2" src="../bbb-cbr-1300-frag.mp4" type="video/mp4"> <!-- id and src will be changed accordingly -->
-        </video>
-      </div>
-      <div class="col s4">
-        <video height="150">
-          <source id="peer-test-3" src="../bbb-cbr-1300-frag.mp4" type="video/mp4"> <!-- id and src will be changed accordingly -->
+      <div class="col s12">
+        <video class="responsive-video z-depth-5" id="video-stream" controls>
+          <source id="video-source" src="../bbb-cbr-1300-frag.mp4" type="video/mp4">
         </video>
       </div>
     </div>
 <!-- Video stream section ends -->
 
-<!-- changing dimensions of the player -->
-    <div class="row">
+<!-- Peer controls of the room -->
+    <div class="row container">
       <form class="col s12">
-        <div class="row col s6">
-          <div class="input-field col s3">
-            <input id="width-input" type="number" class="validate">
-            <label for="width-input" class="active">Width</label>
-            <a id="width-change" onclick="widthChange()" class="btn-flat waves-effect waves-light red row left">Change</a>
-          </div>
-          <div class="input-field col s3">
-            <input id="height-input" type="number" class="validate">
-            <label for="height">Height</label>
-            <a id="height-change" onclick="heightChange()" class="btn-flat waves-effect waves-light red row left">Change</a>
-          </div>
+        <div class="row left col s3 push-s4">
+            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text">Stream!</span></a>
         </div>
-        <div class="row left col s3  pull-s2">
-            <a id="stream" onclick="streamVideo()" class="btn disabled">Stream!</a>
+        <div class="row col s7 push-s4">
+          <div class="col s9">
+            <ul class="collapsible popout" data-collapsible="accordion">
+              <li>
+                <div class="collapsible-header z-depth-5 red lighten-4"><i class="material-icons">perm_identity</i><b>Peers in the room</b></div>
+                <div class="collapsible-body z-depth-5 red lighten-4"><h4 class="peer-num">1</h4></div>
+              </li>
+              <li>
+                <div class="collapsible-header z-depth-5 red lighten-3"><i class="material-icons">aspect_ratio</i><b>Aspect Ratio</b></div>
+                <div class="collapsible-body z-depth-5 red lighten-3 col s6"><h6><b>Width</b>
+                </h6><h6 id="video-width"><b>1280px</b></h6></div>
+                <div class="collapsible-body z-depth-5 red lighten-3 col s6"><h6><b>Height</b></h6><h6 id="video-height"><b>720px</b></h6></div>
+              </li>
+              <li>
+                <div class="collapsible-header z-depth-5 red lighten-2"><i class="material-icons">airplay</i><b>Broadcast URL</b></div>
+                  <div class="collapsible-body z-depth-5 red lighten-2">
+                    <div class="row valign-wrapper">
+                      <a href="#broadcast-url-copy" onclick="copyBroadcastURL()"><div class="col s2">
+                        <i class="material-icons">input</i>
+                      </div></a>
+                      <div class="col s10">
+                        <span class="center-align" id="broadcast-url"><b>Click the icon to generate and copy the URL</b></span>
+                      </div>  
+                    </div>
+                  </div>
+              </li>
+            </ul>
+          </div>  
         </div>
-            <div class="card-panel grey lighten-5 col s4 z-depth-1 hoverable row right" id="broadcast-url-copy"><a href="#broadcast-url-copy" onclick="copyBroadcastURL()">
-              <div>
-                <h5 class="center">Broadcast URL(Click to copy)</h5>
-              </div>
-              <div class="flow-text Calibri">
-                <h5 class="center-align red-text" id="broadcast-url">
-                  Generating URL...
-                  <hr/>
-                </h5>
-              </div>
-            </div>
-            </a>
-            </div>
     </div> 
   </div>
+</div>
 
 <!-- Footer -->
-  <footer class="page-footer light-blue lighten-1">
-    <div class="container">
+  <footer class="page-footer red lighten-2">
       <div class="row">
         <div class="col m8 s12">
-          <h5 class="white-text">P2PSP</h5>
-          <p class="grey-text text-lighten-4">P2PSP.org is a nonprofit organization that develops, among other things, the P2PSP protocol. P2PSP is an application layer protocol designed for the real-time streaming of multimedia content over the Internet. P2PSP is free, open, Creative Common Attribution-sharealike 4 International licensed. Among our objectives are deployment of streaming video services, real-time video recording and transmission tools, social streaming, application-layer IP multicast on the global Internet, secure communications, etc.</p>
+          <h5 class="white-text">Virtual Room</h5>
+          <p class="grey-text text-lighten-4">A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time. It is like to be in the same room watching a movie but in a virtual way.</p>
 
 
         </div>
       </div>
-    </div>
     <div class="footer-copyright">
-      <div class="container">
-      Made at <a class="orange-text text-lighten-3" href="http://p2psp.org">P2PSP</a>
-      </div>
+        <p>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></p>
     </div>
   </footer>
 

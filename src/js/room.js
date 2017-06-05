@@ -1,27 +1,30 @@
 var vid = document.getElementById("video-stream"); // Video to be streamed
-var widthInput = document.getElementById("width-input");
-var heightInput = document.getElementById("height-input");
+var vidWidth = document.getElementById("video-width");
+var vidHeight = document.getElementById("video-height");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
 var baseURL = "http://p2psp.org/virtual-room/room/" // Will be changed accordingly
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
+console.log(peerID);
 
 // Filling placeholders after the video has been loaded
 vid.addEventListener("loadedmetadata", function(e){
 	vid.setAttribute("width",vid.videoWidth); // Set the video frame size as per the aspect ratio of the video
-	widthInput.setAttribute("placeholder", vid.videoWidth+"px");
-	heightInput.setAttribute("placeholder", vid.videoHeight+"px");
+	vidWidth.innerHTML = (vid.videoWidth+"px").bold();
+	vidHeight.innerHTML = (vid.videoHeight+"px").bold();
+	// aspectRatio.innerText = vidWidth/vidHeight;
+
 },false);
 
-function widthChange(){
-    var widthInput = document.getElementById("width-input");
-    vid.setAttribute("width",widthInput.value);
-    };
+// function widthChange(){
+//     var widthInput = document.getElementById("width-input");
+//     vid.setAttribute("width",widthInput.value);
+//     };
 
-function heightChange(){
-    var heightInput = document.getElementById("height-input");
-    vid.setAttribute("height",heightInput.value);
-    };
+// function heightChange(){
+//     var heightInput = document.getElementById("height-input");
+//     vid.setAttribute("height",heightInput.value);
+//     };
 
 vidFile.onchange = function(){
 		var streambtn = document.getElementById("stream");
@@ -41,31 +44,37 @@ function copyBroadcastURL(){
 	generateURL();
 	var range = document.createRange();
 	range.selectNode(broadcastURL)
+	console.log(range);
+	window.getSelection().removeAllRanges();
 	window.getSelection().addRange(range);
 	document.execCommand("copy");
 };
 
 // Function to be modified to contain logic of generating url
 function generateURL(){
-	broadcastURL.innerText = baseURL;
+	broadcastURL.innerHTML = baseURL.bold();
 }
 
 // disconnect the peer from the room
 function disconnectPeer(){
 
 }
+
 // Updating the number of peers and getting stream from the peer on connecting to other peers
 function addPeer(){
 	var peerNum = document.getElementById("peer-num");
 	var peerMediaElements = document.getElementById("peer-media-banner");
-	parseInt(peerNum)+=1;
-	var peerMedia = document.createElement("div");
+	peerNumUpdated = parseInt(peerNum.innerText)+1;
+	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("video");
-	peerMediaSource.setAttribute("height", "150");
+	peerMediaVideo.setAttribute("class", "z-depth-5")
 	var peerMediaSource = document.createElement("source");
-	source.src = "../bbb-cbr-1300-frag.mp4"; // to be updated with UserMedia
-	source.id = "user-media-"+peerID;
-	peerMediaVideo.appendChild(source);
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaSource.src = "../bbb-cbr-1300-frag.mp4"; // to be updated with UserMedia
+	peerMediaSource.id = "user-media-"+peerID;
+	peerMediaVideo.appendChild(peerMediaSource);
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
+	peerNum.innerText = peerNumUpdated;
 }	
