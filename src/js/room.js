@@ -28,6 +28,7 @@ vid.addEventListener("loadedmetadata", function(e){
 
 vidFile.onchange = function(){
 		var streambtn = document.getElementById("stream");
+		vid.setAttribute("controls", "")
 	    streambtn.setAttribute("class", "btn-flat waves-effect waves-light red");
     };
 
@@ -48,11 +49,12 @@ function copyBroadcastURL(){
 	window.getSelection().removeAllRanges();
 	window.getSelection().addRange(range);
 	document.execCommand("copy");
+	Materialize.toast("Link copied to clipboard", 1000);
 };
 
 // Function to be modified to contain logic of generating url
 function generateURL(){
-	broadcastURL.innerHTML = baseURL.bold();
+	broadcastURL.innerHTML = (baseURL+peerID).bold();
 }
 
 // disconnect the peer from the room
