@@ -1,34 +1,52 @@
 var vid = document.getElementById("video-stream"); // Video to be streamed
-var vidWidth = document.getElementById("video-width");
-var vidHeight = document.getElementById("video-height");
+var vidHeight = vid.getAttribute("height");
+var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
 var baseURL = "http://p2psp.org/virtual-room/room/" // Will be changed accordingly
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
-console.log(peerID);
+var vidToWindowRatio;
+var aspectRatio;
+var videoLoaded;
 
 window.onload = function(){
 	generateURL();
 }
 
 // Filling placeholders after the video has been loaded
-// vid.addEventListener("loadedmetadata", function(e){
-	// vid.setAttribute("width",vid.videoWidth); // Set the video frame size as per the aspect ratio of the video
-	// vidWidth.innerHTML = (vid.videoWidth+"px").bold();
-	// vidHeight.innerHTML = (vid.videoHeight+"px").bold();
-	// aspectRatio.innerText = vidWidth/vidHeight;
+vid.addEventListener("loadedmetadata", function(e){
+	videoLoaded = true;
+	aspectRatio = vid.videoWidth/vid.videoHeight;
+	vidToWindowRatio = (vid.videoHeight/screen.height).toFixed(3);
+	var newHeight = (window.outerHeight*vidToWindowRatio);
+	var newWidth = newHeight*aspectRatio;
+	widthChange(newWidth); // Set the video frame size as per the aspect ratio of the video
+	console.log(window.outerHeight);
+	console.log(screen.height);
+},false);
 
-// },false);
+window.onresize = function(){
+	if (videoLoaded) {
+		console.log(vidToWindowRatio);
+		console.log(aspectRatio);
+		var newHeight = (window.outerHeight*vidToWindowRatio);
+		var newWidth = newHeight*aspectRatio;
+		widthChange(newWidth);
+	} 
+	//else{
+	// 	console.log(screen.width);
+	// 	// var vidToWindowRatio = (vidHeight/screen.height).toFixed(3);
+	// 	// var aspectRatio = vidHeight/vidWidth;
+	// 	// var newWidth = vidToWindowRatio*window.outerHeight*aspectRatio;
+	// 	// console.log(vidToWindowRatio);
+	// 	// console.log(newWidth);
+	// 	// widthChange(newWidth);
+	// }
+}
 
-// function widthChange(){
-//     var widthInput = document.getElementById("width-input");
-//     vid.setAttribute("width",widthInput.value);
-//     };
-
-// function heightChange(){
-//     var heightInput = document.getElementById("height-input");
-//     vid.setAttribute("height",heightInput.value);
-//     };
+function widthChange(width){
+    vid.setAttribute("width",width);
+};
 
 vidFile.onchange = function(){
 		var streambtn = document.getElementById("stream");

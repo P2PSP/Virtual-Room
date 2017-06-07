@@ -15,7 +15,7 @@
   <nav class="grey darken-4 lighten-1" role="navigation">
     <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
       <ul class="right hide-on-med-and-down">
-        <li onclick="disconnectPeer()"><a href="index.html"><span class="blue-text text-darken-2">Leave Room</span></a></li>
+        <li onclick="disconnectPeer()"><a href="index.html"><span class="white-text text-darken-2">Leave Room</span></a></li>
       </ul>
       <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
     </div>
@@ -34,23 +34,13 @@
             <div class="file-path-wrapper col s5">
               <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
             </div>
-              <div class="col s6">
-                <h5 class="row">Room URL</h5>
-                  <div class="valign-wrapper">
-                    <div class="col s2 push-s10"><a href="#" onclick="copyBroadcastURL()">
-                      <i class="small material-icons">input</i>
-                    </a></div>
-                    <div class="col s10 pull-s1">
-                    <p id="broadcast-url" class="grey-text">Click the icon to copy the link to clipboard</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-          </div>
+      <div class="col s6">
+        <div class="row left col s3 push-s9">
+            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text">Stream!</span></a>
         </div>
+      </div>
       <div class="col s12">
-        <video class="responsive-video z-depth-5" width="1280" id="video-stream">
+        <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
           <source id="video-source" type="video/mp4">
         </video>
       </div>
@@ -58,19 +48,30 @@
 <!-- Video stream section ends -->
 
 <!-- Peer controls of the room -->
-    <div class="row container">
-      <form class="col s12">
-        <div class="row left col s3 push-s5">
-            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text">Stream!</span></a>
+  <div class="container col s12">
+      <div class="col s6 pull-s1">
+          <h5 class="row">Room URL</h5>
+            <div class="valign-wrapper">
+              <div class="col s2 push-s10"><a href="#" onclick="copyBroadcastURL()">
+                <i class="small material-icons">input</i>
+              </a></div>
+              <div class="col s10 pull-s1">
+              <p id="broadcast-url" class="grey-text">Click the icon to copy the link to clipboard</p>
+              </div>
+            </div>
         </div>
-        <div class="row col s6 push-s4">
-          <div class="col s2 push-s1">
+        <div class="row col s6">
+          <div class="col s2 push-s3">
             <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
           </div>
           <div class="col s10">
             <h5 class="grey-text">peer(s) in the room</h5>
           </div>          
         </div>
+         
+        </div>
+        </div>
+
     </div> 
   </div>
 </div>
