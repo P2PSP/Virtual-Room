@@ -34,19 +34,18 @@
             <div class="file-path-wrapper col s5">
               <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
             </div>
-            <!-- <div class="row"> -->
               <div class="col s6">
-                <div class="card hoverable z-depth-3 red lighten-2">
-                  <div class="card-content black-text">
-                    <span class="card-title">Broadcast URL</span>
-                    <p id="broadcast-url"><b>Click the link down below to generate and copy the URL. Share this link with your friends to add them in your Virtual Room</b></p>
-                  </div>
-                  <div class="card-action">
-                    <span class="white-text"><a href="#broadcast-url-copy" onclick="copyBroadcastURL()">Click to generate URL</a></span>
+                <h5 class="row">Room URL</h5>
+                  <div class="valign-wrapper">
+                    <div class="col s2 push-s10"><a href="#" onclick="copyBroadcastURL()">
+                      <i class="small material-icons">input</i>
+                    </a></div>
+                    <div class="col s10 pull-s1">
+                    <p id="broadcast-url" class="grey-text">Click the icon to copy the link to clipboard</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            <!-- </div> -->
 
           </div>
         </div>
@@ -61,53 +60,24 @@
 <!-- Peer controls of the room -->
     <div class="row container">
       <form class="col s12">
-        <div class="row left col s3 push-s4">
+        <div class="row left col s3 push-s5">
             <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text">Stream!</span></a>
         </div>
-            <div class="card-panel red lighten-3 col s5 z-depth-1 hoverable row right">
-              <div class="col s6 push-s1">
-                <h5>Peers in the room</h5>
-              </div>
-              <div class="col s1 push-s3">
-                <h5 id="peer-num" class="white-text">1</h5>
-              </div>
-            </div>
-        <!-- <div class="row col s7 push-s4">
-          <div class="col s9">
-            <ul class="collapsible popout" data-collapsible="accordion">
-              <li>
-                <div class="collapsible-header z-depth-5 red lighten-4"><i class="material-icons">airplay</i><b>Broadcast URL</b></div>
-                  <div class="collapsible-body z-depth-5 red lighten-4">
-                    <div class="row valign-wrapper">
-                      <a href="#broadcast-url-copy" onclick="copyBroadcastURL()"><div class="col s2">
-                        <i class="material-icons">input</i>
-                      </div></a>
-                      <div class="col s10">
-                        <span class="center-align" id="broadcast-url"><b>Click the icon to generate and copy the URL</b></span>
-                      </div>  
-                    </div>
-                  </div>
-              </li>            
-              <li>
-                <div class="collapsible-header z-depth-5 red lighten-3"><i class="material-icons">perm_identity</i><b>Peers in the room</b></div>
-                <div class="collapsible-body z-depth-5 red lighten-3"><h4 class="peer-num">1</h4></div>
-              </li>
-              <li>
-                <div class="collapsible-header z-depth-5 red lighten-2"><i class="material-icons">aspect_ratio</i><b>Aspect Ratio</b></div>
-                <div class="collapsible-body z-depth-5 red lighten-2 col s6"><h6><b>Width</b>
-                </h6><h6 id="video-width"><b>1280px</b></h6></div>
-                <div class="collapsible-body z-depth-5 red lighten-2 col s6"><h6><b>Height</b></h6><h6 id="video-height"><b>720px</b></h6></div>
-              </li>
-            </ul>
-          </div>  
-        </div> -->
+        <div class="row col s6 push-s4">
+          <div class="col s2 push-s1">
+            <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
+          </div>
+          <div class="col s10">
+            <h5 class="grey-text">peer(s) in the room</h5>
+          </div>          
+        </div>
     </div> 
   </div>
 </div>
 </main>
 
 <!-- Footer -->
-  <footer class="footer-copyright red lighten-2">
+  <footer class="footer-copyright">
     <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
   </footer>
 
@@ -117,4 +87,5 @@
   <script src="../js/materialize.min.js"></script>
   <script src="../js/init.js"></script>
   <script src="../js/room.js"></script>
+  <script src="../js/mp4box.all.js"></script>
 </html>

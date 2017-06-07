@@ -7,14 +7,18 @@ var baseURL = "http://p2psp.org/virtual-room/room/" // Will be changed according
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 console.log(peerID);
 
+window.onload = function(){
+	generateURL();
+}
+
 // Filling placeholders after the video has been loaded
-vid.addEventListener("loadedmetadata", function(e){
-	vid.setAttribute("width",vid.videoWidth); // Set the video frame size as per the aspect ratio of the video
-	vidWidth.innerHTML = (vid.videoWidth+"px").bold();
-	vidHeight.innerHTML = (vid.videoHeight+"px").bold();
+// vid.addEventListener("loadedmetadata", function(e){
+	// vid.setAttribute("width",vid.videoWidth); // Set the video frame size as per the aspect ratio of the video
+	// vidWidth.innerHTML = (vid.videoWidth+"px").bold();
+	// vidHeight.innerHTML = (vid.videoHeight+"px").bold();
 	// aspectRatio.innerText = vidWidth/vidHeight;
 
-},false);
+// },false);
 
 // function widthChange(){
 //     var widthInput = document.getElementById("width-input");
@@ -34,7 +38,6 @@ vidFile.onchange = function(){
 
 function streamVideo(){
 	// Make a separate function to load the video and call it in the main streamVideo() function
-	console.log(vidFile.value);
 	var source = document.getElementById("video-source");
 	var vidURL = URL.createObjectURL(vidFile.files[0]);
 	vid.src = vidURL;
@@ -54,7 +57,7 @@ function copyBroadcastURL(){
 
 // Function to be modified to contain logic of generating url
 function generateURL(){
-	broadcastURL.innerHTML = (baseURL+peerID).bold();
+	broadcastURL.innerHTML = baseURL+peerID;
 }
 
 // disconnect the peer from the room
@@ -80,3 +83,5 @@ function addPeer(){
 	peerMediaElements.appendChild(peerMediaDiv);
 	peerNum.innerText = peerNumUpdated;
 }	
+
+
