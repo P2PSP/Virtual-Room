@@ -31,8 +31,11 @@ window.onresize = function(){
 		console.log(aspectRatio);
 		var newHeight = (window.outerHeight*vidToWindowRatio);
 		var newWidth = newHeight*aspectRatio;
+		console.log(newWidth);
 		widthChange(newWidth);
-	} 
+	} else {
+		console.log("video not loaded");
+	}
 	//else{
 	// 	console.log(screen.width);
 	// 	// var vidToWindowRatio = (vidHeight/screen.height).toFixed(3);
@@ -44,10 +47,6 @@ window.onresize = function(){
 	// }
 }
 
-function widthChange(width){
-    vid.setAttribute("width",width);
-};
-
 vidFile.onchange = function(){
 		var streambtn = document.getElementById("stream");
 		vid.setAttribute("controls", "")
@@ -56,10 +55,11 @@ vidFile.onchange = function(){
 
 function streamVideo(){
 	// Make a separate function to load the video and call it in the main streamVideo() function
-	var source = document.getElementById("video-source");
-	var vidURL = URL.createObjectURL(vidFile.files[0]);
-	vid.src = vidURL;
-	vid.play();
+	// var source = document.getElementById("video-source");
+	// var vidURL = URL.createObjectURL(vidFile.files[0]);
+	// vid.src = vidURL;
+	// vid.play();
+	fragmentMP4();
 };
 
 function copyBroadcastURL(){
@@ -102,4 +102,87 @@ function addPeer(){
 	peerNum.innerText = peerNumUpdated;
 }	
 
+function fragmentMP4(){
+	// var video = document.getElementById('video-stream');
+	// var assetURL = "../AIB  - Man's Best Friend-93oxfr6KfpA.mp4";
+// Need to be specific for Blink regarding codecs
+var mimeCodec = 'video/mp4; codecs="avc1.4d0020"';
+if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
+    var mediaSource = new MediaSource;
+    //create an URL (from mediaSource OBJ) as video's source
+    vid.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', on_source_open);
+} else {
+    console.error('Unsupported MIME type or codec: ', mimeCodec);
+}
 
+function on_source_open(_) {
+    console.log("open");
+    var mediaSource = this;
+    var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+    sourceBuffer.segmentIndex = 0;
+    sourceBuffer.AppendMode = "sequence";
+    sourceBuffer.mode = "sequence";
+    var outBuffer = new Array(); 
+    var videoFile = vidFile.files[0];
+    var fileRead = new FileReader;
+    fileRead.readAsArrayBuffer(videoFile);
+    fileRead.onloadend = function (evt) {
+
+        // console.log("2.on response"); 
+        var mp4box = new MP4Box();
+        var initializeSegments ;  
+        var updateCount = 0;
+        sourceBuffer.addEventListener('updateend', function (_) {
+            if(updateCount < initializeSegments[0].user.segmentIndex)
+            {
+                // console.log("8.append_cnt:"+updateCount);
+                console.log(outBuffer[updateCount]);
+                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+                updateCount++;
+            }
+            else 
+            {
+                // console.log("9.start play");
+                vid.play();
+            }
+        });
+        mp4box.onMoovStart = function () {
+            console.log("4.Starting to receive File Information");
+        }
+        mp4box.onReady = function(info) {
+            // console.log("5.info.mime:"+info.mime);
+            mp4box.onSegment = function (id, user, buffer, sampleNum) {
+                console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength+",sampleNum="+sampleNum);
+                console.log("user.segmentIndex:"+user.segmentIndex);
+                outBuffer[user.segmentIndex] = buffer.slice(0) ;
+                //user.appendBuffer(outBuffer[user.segmentIndex]); 
+                user.segmentIndex++;
+            }; 
+            var options = { nbSamples: 200 };
+            mp4box.setSegmentOptions(info.tracks[0].id, sourceBuffer, options);  
+            initializeSegments = mp4box.initializeSegmentation();  
+            console.log("starting");
+            mp4box.start();
+            console.log("start->stop");
+            mp4box.flush();
+            // console.log("6.mp4 processing end"); 
+        };
+
+        var ab = evt.target.result;
+        console.log(ab);
+        ab.fileStart = 0;
+        // console.log("3.mp4 appendBuffer start,start point:"+nextBufferStart); 
+        var nextBufferStart = mp4box.appendBuffer(ab);
+            
+        // console.log("7.source buffer appendBuffer start:"); 
+        console.log(initializeSegments[0].buffer);
+        sourceBuffer.appendBuffer(initializeSegments[0].buffer); 
+    };
+    // console.log("1.on send"); 
+};
+}
+
+function widthChange(width){
+    vid.setAttribute("width",width);
+};
