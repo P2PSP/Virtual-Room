@@ -8,9 +8,31 @@ var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0
 var vidToWindowRatio;
 var aspectRatio;
 var videoLoaded;
+var serverConfig = {iceServers: [{ url: 'stun:stun.l.google.com:19302' }]};
+var peersInRoom = [];
+var peerNum = document.getElementById("peer-num").innerText;
+var senderID = window.location - baseURL;
+var signalServer = new WebSocket("ws://127.0.0.1:8000/") // Set to local websocket for now
+
+// Check if all required API's are available in the peer's browser
+
+window.MediaSource = window.MediaSource || window.WebKitMediaSource;
+if (!!!window.MediaSource) {
+  alert('MediaSource API is not available :_(');
+  Materialize.toast("OOPS! You may not be able to access all the features of the room");
+};
+
+window.RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
+window.RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate;
+window.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription;
+if (!!!window.RTCPeerConnection || !!!window.RTCIceCandidate || !!!window.RTCSessionDescription) {
+  alert('WebRTC API is not available :_(');
+  Materialize.toast("OOPS! You may not be able to access all the features of the room");
+};
 
 window.onload = function(){
 	generateURL();
+	preInititiation();
 }
 
 // Filling placeholders after the video has been loaded
@@ -46,6 +68,10 @@ window.onresize = function(){
 	// 	// widthChange(newWidth);
 	// }
 }
+
+function widthChange(width){
+    vid.setAttribute("width",width);
+};
 
 vidFile.onchange = function(){
 		var streambtn = document.getElementById("stream");
@@ -84,10 +110,10 @@ function disconnectPeer(){
 }
 
 // Updating the number of peers and getting stream from the peer on connecting to other peers
+// Should be updated such that the current peer doesn't have his/her user media appended as a video element in the current page
 function addPeer(){
-	var peerNum = document.getElementById("peer-num");
 	var peerMediaElements = document.getElementById("peer-media-banner");
-	peerNumUpdated = parseInt(peerNum.innerText)+1;
+	peerNumUpdated = parseInt(peerNum)+1;
 	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("video");
 	peerMediaVideo.setAttribute("class", "z-depth-5")
@@ -99,8 +125,11 @@ function addPeer(){
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
 	peerMediaElements.appendChild(peerMediaDiv);
-	peerNum.innerText = peerNumUpdated;
+	peersInRoom[peerNum]["peerID"] = peerID;
+	peerNum = peerNumUpdated;
 }	
+
+// ------------------------Fragmenting MP4 in the browser--------------------------------
 
 function fragmentMP4(){
 	// var video = document.getElementById('video-stream');
@@ -183,6 +212,45 @@ function on_source_open(_) {
 };
 }
 
-function widthChange(width){
-    vid.setAttribute("width",width);
-};
+// ------------------------Finished fragmentation---------------------------------------
+
+// ------------------------Connecting Peers---------------------------------------------
+
+// Function to avoid confusions about new peers and creator of the room
+function preInititiation(){
+	if (peerID != senderID){
+		initiatePeerConnection(peerID);
+		addPeer();
+	}else{
+		return ;
+	}
+}
+
+var currentPeer = peersInRoom[peerNum];
+
+// Initiating peer connection with the host
+function initiatePeerConnection(peerID){
+	currentPeer["peerConnection"] = new RTCPeerConnection(serverConfig);
+
+	currentPeer["peerConnection"].onicecandidate = function(evt){
+		signalServer.send(JSON.stringify({"candidate" :evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
+	};
+
+	currentPeer["peerConnection"].onnegotiationneeded = function(){
+		currentPeer["peerConnection"].createOffer(createLocalDescription(offer), logError());
+	}	
+}
+
+// Create Local description for a new peer in the room(Generate Local description containing session description protocol)
+function createLocalDescription(offer, sendOffer){
+	return currentPeer["peerConnection"].setLocalDescription(offer);
+}
+
+// Sending offer to connect(As a callback to createLocalDescription)
+function sendOffer(){
+	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": currentPeer["peerConnection"].localDescription, "peerID": currentPeer["peerID"], "senderID": senderID}))
+})
+
+function logError(e) {
+    console.log("error occured "+e.name + "with message " + e.message);
+}
