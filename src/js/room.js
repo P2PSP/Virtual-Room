@@ -3,7 +3,7 @@ var vidHeight = vid.getAttribute("height");
 var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
-var baseURL = "http://p2psp.org/virtual-room/room/" // Will be changed accordingly
+var baseURL = "http://127.0.0.1:3000/room/" // Will be changed accordingly
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
@@ -11,8 +11,28 @@ var videoLoaded;
 var serverConfig = {iceServers: [{ url: 'stun:stun.l.google.com:19302' }]};
 var peersInRoom = [];
 var peerNum = document.getElementById("peer-num").innerText;
-var senderID = window.location - baseURL;
+var senderID;
+// if there is a new user he will be directed to base url as he makes a virtual room, and if an new peer joins existing room we assign sender id according to the window location
+if (window.location["href"].length - peerID.length == baseURL.length){
+	senderID = window.location.replace(baseURL);
+}else{
+	senderID = peerID;
+}
 var signalServer = new WebSocket("ws://127.0.0.1:8000/") // Set to local websocket for now
+var currentPeer;
+
+window.onload = function(){
+	history.replaceState('', '', 'http://127.0.0.1:3000/room/' + peerID);
+	generateURL();
+	preInititiation();
+}
+
+signalServer.onopen = function(){
+	if (peerID == senderID){
+		signalServer.send({"addRoom": true, "roomID": senderID})
+	}
+	signalServer.send({"peerID": peerID, "addUser": true})
+}
 
 // Check if all required API's are available in the peer's browser
 
@@ -30,10 +50,17 @@ if (!!!window.RTCPeerConnection || !!!window.RTCIceCandidate || !!!window.RTCSes
   Materialize.toast("OOPS! You may not be able to access all the features of the room");
 };
 
-window.onload = function(){
-	generateURL();
-	preInititiation();
+signalServer.onmessage = function (message){
+	handleMessage(message);
 }
+
+function handleMessage(message){
+	// message = JSON.parse(message);
+	// if (message.generatePeerID){
+	// 	peerID = message["peerID"];
+	// }
+}
+
 
 // Filling placeholders after the video has been loaded
 vid.addEventListener("loadedmetadata", function(e){
@@ -129,6 +156,7 @@ function addPeer(){
 	peerNum = peerNumUpdated;
 }	
 
+
 // ------------------------Fragmenting MP4 in the browser--------------------------------
 
 function fragmentMP4(){
@@ -219,17 +247,17 @@ function on_source_open(_) {
 // Function to avoid confusions about new peers and creator of the room
 function preInititiation(){
 	if (peerID != senderID){
-		initiatePeerConnection(peerID);
 		addPeer();
+		initiatePeerConnection(peerID);
 	}else{
-		return ;
+		signalServer.send({"addRoom": true, "roomID": peerID}) ;
 	}
 }
 
-var currentPeer = peersInRoom[peerNum];
 
 // Initiating peer connection with the host
 function initiatePeerConnection(peerID){
+	currentPeer = peersInRoom[peerNum];
 	currentPeer["peerConnection"] = new RTCPeerConnection(serverConfig);
 
 	currentPeer["peerConnection"].onicecandidate = function(evt){
@@ -249,7 +277,22 @@ function createLocalDescription(offer, sendOffer){
 // Sending offer to connect(As a callback to createLocalDescription)
 function sendOffer(){
 	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": currentPeer["peerConnection"].localDescription, "peerID": currentPeer["peerID"], "senderID": senderID}))
-})
+}
+
+function gotMessageFromServer(message) {
+    // if(!currentPeer) start(false);
+
+    var signal = JSON.parse(message.data);
+    if(signal.sdp) {
+        peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp), function() {
+            if(signal.sdp.type == 'offer') {
+                peerConnection.createAnswer(createLocalDescription, logError);
+            }
+        });
+    } else if(signal.ice) {
+        peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice));
+    }
+}
 
 function logError(e) {
     console.log("error occured "+e.name + "with message " + e.message);
