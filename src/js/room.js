@@ -29,8 +29,11 @@ window.onload = function(){
 
 signalServer.onopen = function(){
 	// on connecting to signal server add peer to room/add room 
+	// handling the case of host user to differentiate with normal peers
 	if (peerID == senderID){
 		signalServer.send({"addRoom": true, "roomID": senderID})
+	}else{
+		signalServer.send({"verifyRoom": "not verified", "roomID": senderID}) // message sent only if peer comes by direct link
 	}
 	signalServer.send({"peerID": peerID, "addUser": true})
 }
@@ -55,11 +58,14 @@ signalServer.onmessage = function (message){
 	handleMessage(message);
 }
 
+
+// Used for messages apart from peer connections, for peer connection refer to gotMessageFromServer()
 function handleMessage(message){
-	// message = JSON.parse(message);
-	// if (message.generatePeerID){
-	// 	peerID = message["peerID"];
-	// }
+	message = JSON.parse(message);
+	if (message.roomExists=="false"){
+		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
+		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
+	})
 }
 
 
@@ -86,15 +92,6 @@ window.onresize = function(){
 	} else {
 		console.log("video not loaded");
 	}
-	//else{
-	// 	console.log(screen.width);
-	// 	// var vidToWindowRatio = (vidHeight/screen.height).toFixed(3);
-	// 	// var aspectRatio = vidHeight/vidWidth;
-	// 	// var newWidth = vidToWindowRatio*window.outerHeight*aspectRatio;
-	// 	// console.log(vidToWindowRatio);
-	// 	// console.log(newWidth);
-	// 	// widthChange(newWidth);
-	// }
 }
 
 function widthChange(width){
@@ -262,7 +259,7 @@ function initiatePeerConnection(peerID){
 	currentPeer["peerConnection"] = new RTCPeerConnection(serverConfig);
 
 	currentPeer["peerConnection"].onicecandidate = function(evt){
-		signalServer.send(JSON.stringify({"candidate" :evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
+		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
 	currentPeer["peerConnection"].onnegotiationneeded = function(){
@@ -280,6 +277,7 @@ function sendOffer(){
 	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": currentPeer["peerConnection"].localDescription, "peerID": currentPeer["peerID"], "senderID": senderID}))
 }
 
+// handle message from server to create connections
 function gotMessageFromServer(message) {
     // if(!currentPeer) start(false);
 
