@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import socket, threading, time, base64, hashlib, struct, binascii
-import simplejson as json
+import json
 from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer
 import uuid
 
@@ -18,10 +18,10 @@ class Signal(WebSocket):
 			try:
 				rooms[room_index]["peers"][peer_id_server].sendMessage(str(message))
 			except Exception as e:
-				print "exception" + e
+				print("exception" + e)
 		elif "addPeer" in message:
 			# peer_id_server+=1
-			room_index = (rooms.index(room) for room in rooms if rooms["roomID"] == message["roomID"]).next()
+			room_index = next(rooms.index(room) for room in rooms if rooms["roomID"] == message["roomID"])
 			peer_id_server = len(rooms[room_index]["peers"])
 			rooms[room_index]["peers"].append(peer_id_client) # for the time being I am appending the client id of peer to the index of that peer in the array on server
 			rooms[room_index]["peers"][peer_id_server] = self

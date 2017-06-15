@@ -13,7 +13,7 @@ var peersInRoom = [];
 var peerNum = document.getElementById("peer-num").innerText;
 var senderID;
 // if there is a new user he will be directed to base url as he makes a virtual room, and if an new peer joins existing room we assign sender id according to the window location
-if (window.location["href"].length - peerID.length == baseURL.length){
+if (window.location.href.length - peerID.length == baseURL.length){
 	senderID = window.location.replace(baseURL);
 }else{
 	senderID = peerID;
@@ -22,12 +22,13 @@ var signalServer = new WebSocket("ws://127.0.0.1:8000/") // Set to local websock
 var currentPeer;
 
 window.onload = function(){
-	history.replaceState('', '', 'http://127.0.0.1:3000/room/' + peerID);
+	history.replaceState('', '', baseURL + peerID);
 	generateURL();
 	preInititiation();
 }
 
 signalServer.onopen = function(){
+	// on connecting to signal server add peer to room/add room 
 	if (peerID == senderID){
 		signalServer.send({"addRoom": true, "roomID": senderID})
 	}
