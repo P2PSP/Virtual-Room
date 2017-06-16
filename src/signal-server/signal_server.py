@@ -30,9 +30,9 @@ class Signal(WebSocket):
 		elif "verifyRoom" in message:
 			room_index = next(rooms.index(room) for room in rooms if rooms["roomID"] == message["roomID"])
 			if not room_index is None:
-				self.sendMessage("roomExists": "true")
+				self.sendMessage({"roomExists": "true"})
 			else:
-				self.sendMessage("roomExists": "false") 
+				self.sendMessage({"roomExists": "false"}) 
 
 	# to be decided if the peer id should be generated on the client side or the server side
 	def handleConnected(self):
