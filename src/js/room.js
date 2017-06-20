@@ -3,7 +3,7 @@ var vidHeight = vid.getAttribute("height");
 var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
-var baseURL = "http://127.0.0.1:3000/room/" // Will be changed accordingly
+var baseURL = "http://127.0.0.1:3000/room/"; // Will be changed accordingly
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
@@ -12,31 +12,32 @@ var serverConfig = {iceServers: [{ url: 'stun:stun.l.google.com:19302' }]};
 var peersInRoom = [];
 var peerNum = document.getElementById("peer-num").innerText;
 var senderID;
+var mimeCodec;
 // if there is a new user he will be directed to base url as he makes a virtual room, and if an new peer joins existing room we assign sender id according to the window location
 if (window.location.href.length - peerID.length == baseURL.length){
 	senderID = window.location.replace(baseURL);
 }else{
 	senderID = peerID;
 }
-var signalServer = new WebSocket("ws://127.0.0.1:8000/") // Set to local websocket for now
+var signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
 var currentPeer;
 
 window.onload = function(){
 	history.replaceState('', '', baseURL + peerID);
 	generateURL();
 	preInititiation();
-}
+};
 
 signalServer.onopen = function(){
 	// on connecting to signal server add peer to room/add room 
 	// handling the case of host user to differentiate with normal peers
 	if (peerID == senderID){
-		signalServer.send({"addRoom": true, "roomID": senderID})
+		signalServer.send({"addRoom": true, "roomID": senderID});
 	}else{
-		signalServer.send({"verifyRoom": "not verified", "roomID": senderID}) // message sent only if peer comes by direct link
+		signalServer.send({"verifyRoom": "not verified", "roomID": senderID}); // message sent only if peer comes by direct link
 	}
-	signalServer.send({"peerID": peerID, "addUser": true})
-}
+	signalServer.send({"peerID": peerID, "addUser": true});
+};
 
 // Check if all required API's are available in the peer's browser
 
@@ -44,7 +45,7 @@ window.MediaSource = window.MediaSource || window.WebKitMediaSource;
 if (!!!window.MediaSource) {
   alert('MediaSource API is not available :_(');
   Materialize.toast("OOPS! You may not be able to access all the features of the room");
-};
+}
 
 window.RTCPeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
 window.RTCIceCandidate = window.RTCIceCandidate || window.mozRTCIceCandidate;
@@ -52,11 +53,11 @@ window.RTCSessionDescription = window.RTCSessionDescription || window.mozRTCSess
 if (!!!window.RTCPeerConnection || !!!window.RTCIceCandidate || !!!window.RTCSessionDescription) {
   alert('WebRTC API is not available :_(');
   Materialize.toast("OOPS! You may not be able to access all the features of the room");
-};
+}
 
 signalServer.onmessage = function (message){
 	handleMessage(message);
-}
+};
 
 
 // Used for messages apart from peer connections, for peer connection refer to gotMessageFromServer()
@@ -65,7 +66,8 @@ function handleMessage(message){
 	if (message.roomExists=="false"){
 		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
 		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
-	})
+	});
+	};
 }
 
 
@@ -92,37 +94,35 @@ window.onresize = function(){
 	} else {
 		console.log("video not loaded");
 	}
-}
+};
 
 function widthChange(width){
     vid.setAttribute("width",width);
-};
+}
 
 vidFile.onchange = function(){
 		var streambtn = document.getElementById("stream");
-		vid.setAttribute("controls", "")
+		vid.setAttribute("controls", "");
 	    streambtn.setAttribute("class", "btn-flat waves-effect waves-light red");
     };
 
 function streamVideo(){
 	// Make a separate function to load the video and call it in the main streamVideo() function
 	// var source = document.getElementById("video-source");
-	// var vidURL = URL.createObjectURL(vidFile.files[0]);
-	// vid.src = vidURL;
 	// vid.play();
 	fragmentMP4();
-};
+}
 
 function copyBroadcastURL(){
 	generateURL();
 	var range = document.createRange();
-	range.selectNode(broadcastURL)
+	range.selectNode(broadcastURL);
 	console.log(range);
 	window.getSelection().removeAllRanges();
 	window.getSelection().addRange(range);
 	document.execCommand("copy");
 	Materialize.toast("Link copied to clipboard", 1000);
-};
+}
 
 // Function to be modified to contain logic of generating url
 function generateURL(){
@@ -141,7 +141,7 @@ function addPeer(){
 	peerNumUpdated = parseInt(peerNum)+1;
 	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("video");
-	peerMediaVideo.setAttribute("class", "z-depth-5")
+	peerMediaVideo.setAttribute("class", "z-depth-5");
 	var peerMediaSource = document.createElement("source");
 	peerMediaVideo.setAttribute("height", "150");
 	peerMediaSource.src = "../bbb-cbr-1300-frag.mp4"; // to be updated with UserMedia
@@ -150,7 +150,7 @@ function addPeer(){
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
 	peerMediaElements.appendChild(peerMediaDiv);
-	peersInRoom[peerNum]["peerID"] = peerID;
+	peersInRoom[peerNum].peerID = peerID;
 	peerNum = peerNumUpdated;
 }	
 
@@ -158,20 +158,19 @@ function addPeer(){
 // ------------------------Fragmenting MP4 in the browser--------------------------------
 
 function fragmentMP4(){
-	// var video = document.getElementById('video-stream');
-	// var assetURL = "../AIB  - Man's Best Friend-93oxfr6KfpA.mp4";
-// Need to be specific for Blink regarding codecs
-var mimeCodec = 'video/mp4; codecs="avc1.4d0020"';
-if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
-    var mediaSource = new MediaSource;
-    //create an URL (from mediaSource OBJ) as video's source
-    vid.src = URL.createObjectURL(mediaSource);
-    mediaSource.addEventListener('sourceopen', on_source_open);
-} else {
+	// Need to be specific for Blink regarding codecs
+	mimeCodec = 'video/mp4; codecs="avc1.4d0020"';
+	if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
+	    var mediaSource = new MediaSource();
+	    //create an URL (from mediaSource OBJ) as video's source
+	    vid.src = URL.createObjectURL(mediaSource);
+	    mediaSource.addEventListener('sourceopen', onSourceOpen);
+	}else{
     console.error('Unsupported MIME type or codec: ', mimeCodec);
+	}
 }
 
-function on_source_open(_) {
+function onSourceOpen(_) {
     console.log("open");
     var mediaSource = this;
     var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
@@ -180,33 +179,70 @@ function on_source_open(_) {
     sourceBuffer.mode = "sequence";
     var outBuffer = new Array(); 
     var videoFile = vidFile.files[0];
-    var fileRead = new FileReader;
+	// var vidURL = URL.createObjectURL(videoFile);
+	// vid.src = vidURL;
+	// vid.play();
+	// if (vid.readyState > 0){
+	//     console.log(vid.duration);
+	// }
+    console.log(videoFile.size);
+    var fileRead = new FileReader();
     fileRead.readAsArrayBuffer(videoFile);
+    console.log("playback rate = "+vid.playbackRate);
     fileRead.onloadend = function (evt) {
-
-        // console.log("2.on response"); 
+        console.log("2.on response"); 
         var mp4box = new MP4Box();
         var initializeSegments ;  
         var updateCount = 0;
+        var bytesAppended = 0;
+        var currentChunkEndTime;
         sourceBuffer.addEventListener('updateend', function (_) {
-            if(updateCount < initializeSegments[0].user.segmentIndex)
-            {
-                // console.log("8.append_cnt:"+updateCount);
-                console.log(outBuffer[updateCount]);
-                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
-                updateCount++;
-            }
-            else 
-            {
-                // console.log("9.start play");
+            if(updateCount < initializeSegments[0].user.segmentIndex){
+            	try{
+	                console.log("8.append_cnt:"+updateCount);
+	                console.log(outBuffer[updateCount]);
+	                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+	                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
+	                updateCount++;
+	                currentChunkEndTime+=Math.ceil(outBuffer[updateCount].byteLength*(videoFile.size/durationInSeconds))
+	                vid.play();
+	                // console.log("video played");
+	            }
+    	        catch(e){
+    	        	console.log(e.name);
+    	        	if (e.name == "QuotaExceededError"){
+    	        		console.log("clean buffer");
+    	        		if (vid.currentTime < currentChunkEndTime){
+    	        			await sleep(currentChunkEndTime - vid.currentTime);
+    	        			cleanBuffer();
+    	        		}else{
+	    	        		cleanBuffer();
+	    	        	}
+    	        	}
+    	        }
+    	        finally{
+	                console.log("8.append_cnt:"+updateCount);
+	                console.log(outBuffer[updateCount]);
+	                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+	                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
+	                updateCount++;
+	                currentChunkEndTime+=Math.ceil(outBuffer[updateCount].byteLength*(videoFile.size/durationInSeconds))
+	                vid.play();
+    	        }
+            }else{
+                console.log("9.start play");
                 vid.play();
             }
         });
         mp4box.onMoovStart = function () {
             console.log("4.Starting to receive File Information");
-        }
+        };
+        var durationInSeconds;
         mp4box.onReady = function(info) {
-            // console.log("5.info.mime:"+info.mime);
+        	console.log(info);
+        	// calculating duration in seconds according to the timescale of the video
+        	durationInSeconds = info.duration/info.timescale;
+            console.log("5.info.mime:"+info.mime);
             mp4box.onSegment = function (id, user, buffer, sampleNum) {
                 console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength+",sampleNum="+sampleNum);
                 console.log("user.segmentIndex:"+user.segmentIndex);
@@ -214,28 +250,34 @@ function on_source_open(_) {
                 //user.appendBuffer(outBuffer[user.segmentIndex]); 
                 user.segmentIndex++;
             }; 
-            var options = { nbSamples: 200 };
+
+            var nbSamples = Math.ceil((durationInSeconds/peerNum)*24); //assuming 24 fps
+            if (videoFile.size/peerNum > 1048576*149){ // if a chunk size exceeds 150 mb, sourcebuffer quota exceeds
+            	var divideNbSamplesBy = Math.ceil(videoFile.size/1048576*150); // 1 MB = 1048576 bytes
+            	nbSamples = nbSamples/divideNbSamplesBy;
+            }
+            console.log(nbSamples);
+            var options = { nbSamples: nbSamples };
             mp4box.setSegmentOptions(info.tracks[0].id, sourceBuffer, options);  
             initializeSegments = mp4box.initializeSegmentation();  
             console.log("starting");
             mp4box.start();
             console.log("start->stop");
             mp4box.flush();
-            // console.log("6.mp4 processing end"); 
+            console.log("6.mp4 processing end"); 
         };
 
         var ab = evt.target.result;
         console.log(ab);
         ab.fileStart = 0;
-        // console.log("3.mp4 appendBuffer start,start point:"+nextBufferStart); 
+        console.log("3.mp4 appendBuffer start,start point:"+nextBufferStart); 
         var nextBufferStart = mp4box.appendBuffer(ab);
             
-        // console.log("7.source buffer appendBuffer start:"); 
+        console.log("7.source buffer appendBuffer start:"); 
         console.log(initializeSegments[0].buffer);
         sourceBuffer.appendBuffer(initializeSegments[0].buffer); 
     };
-    // console.log("1.on send"); 
-};
+    console.log("1.on send"); 
 }
 
 // ------------------------Finished fragmentation---------------------------------------
@@ -256,25 +298,25 @@ function preInititiation(){
 // Initiating peer connection with the host
 function initiatePeerConnection(peerID){
 	currentPeer = peersInRoom[peerNum];
-	currentPeer["peerConnection"] = new RTCPeerConnection(serverConfig);
+	currentPeer.peerConnection = new RTCPeerConnection(serverConfig);
 
-	currentPeer["peerConnection"].onicecandidate = function(evt){
+	currentPeer.peerConnection.onicecandidate = function(evt){
 		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
-	currentPeer["peerConnection"].onnegotiationneeded = function(){
-		currentPeer["peerConnection"].createOffer(createLocalDescription(offer), logError());
-	}	
+	currentPeer.peerConnection.onnegotiationneeded = function(){
+		currentPeer.peerConnection.createOffer(createLocalDescription(offer), logError());
+	};
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
 function createLocalDescription(offer, sendOffer){
-	return currentPeer["peerConnection"].setLocalDescription(offer);
+	return currentPeer.peerConnection.setLocalDescription(offer);
 }
 
 // Sending offer to connect(As a callback to createLocalDescription)
 function sendOffer(){
-	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": currentPeer["peerConnection"].localDescription, "peerID": currentPeer["peerID"], "senderID": senderID}))
+	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": currentPeer.peerConnection.localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
 }
 
 // handle message from server to create connections
