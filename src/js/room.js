@@ -13,30 +13,43 @@ var peersInRoom = [];
 var peerNum = document.getElementById("peer-num").innerText;
 var senderID;
 var mimeCodec;
-// if there is a new user he will be directed to base url as he makes a virtual room, and if an new peer joins existing room we assign sender id according to the window location
+var outBuffer = new Array(); 
+var sourceBuffer;
+var chunkSize = 16*1024; // 16kb
+var signalServer;
+
+
 if (window.location.href.length - peerID.length == baseURL.length){
+	console.log(senderID);
 	senderID = window.location.replace(baseURL);
 }else{
+	console.log("peer is sender");
 	senderID = peerID;
 }
-var signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
+
+generateURL();
+preInititiation();
+
+// if there is a new user he will be directed to base url as he makes a virtual room, and if an new peer joins existing room we assign sender id according to the window location
 var currentPeer;
 
 window.onload = function(){
-	history.replaceState('', '', baseURL + peerID);
-	generateURL();
-	preInititiation();
+history.replaceState('', '', baseURL + peerID);
+	console.log("window loaded");
+// 	history.replaceState('', '', baseURL + peerID);
+// 	generateURL();
+// 	preInititiation();
 };
 
 signalServer.onopen = function(){
 	// on connecting to signal server add peer to room/add room 
 	// handling the case of host user to differentiate with normal peers
 	if (peerID == senderID){
-		signalServer.send({"addRoom": true, "roomID": senderID});
+		signalServer.send(JSON.stringify({"addRoom": true, "roomID": senderID}));
 	}else{
-		signalServer.send({"verifyRoom": "not verified", "roomID": senderID}); // message sent only if peer comes by direct link
+		signalServer.send(JSON.stringify({"verifyRoom": "not verified", "roomID": senderID})); // message sent only if peer comes by direct link
 	}
-	signalServer.send({"peerID": peerID, "addUser": true});
+	signalServer.send(JSON.stringify({"peerID": peerID, "addPeer": true, "roomID": senderID}));
 };
 
 // Check if all required API's are available in the peer's browser
@@ -56,13 +69,16 @@ if (!!!window.RTCPeerConnection || !!!window.RTCIceCandidate || !!!window.RTCSes
 }
 
 signalServer.onmessage = function (message){
+	console.log("message received");
 	handleMessage(message);
 };
 
 
 // Used for messages apart from peer connections, for peer connection refer to gotMessageFromServer()
 function handleMessage(message){
-	message = JSON.parse(message);
+	console.log(message.data);
+	// message = JSON.parse(message.data);
+	console.log(message.message);
 	if (message.roomExists=="false"){
 		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
 		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
@@ -173,11 +189,10 @@ function fragmentMP4(){
 function onSourceOpen(_) {
     console.log("open");
     var mediaSource = this;
-    var sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
     sourceBuffer.segmentIndex = 0;
     sourceBuffer.AppendMode = "sequence";
     sourceBuffer.mode = "sequence";
-    var outBuffer = new Array(); 
     var videoFile = vidFile.files[0];
 	// var vidURL = URL.createObjectURL(videoFile);
 	// vid.src = vidURL;
@@ -195,40 +210,60 @@ function onSourceOpen(_) {
         var initializeSegments ;  
         var updateCount = 0;
         var bytesAppended = 0;
-        var currentChunkEndTime;
+        var chunkEndTime = []; // Containing different chunks end time
+		var currentChunk = 0
+		var chunkStartTime = 0
         sourceBuffer.addEventListener('updateend', function (_) {
             if(updateCount < initializeSegments[0].user.segmentIndex){
             	try{
-	                console.log("8.append_cnt:"+updateCount);
-	                console.log(outBuffer[updateCount]);
-	                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
-	                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
-	                updateCount++;
-	                currentChunkEndTime+=Math.ceil(outBuffer[updateCount].byteLength*(videoFile.size/durationInSeconds))
-	                vid.play();
-	                // console.log("video played");
+            		if(!sourceBuffer.updating){
+		                console.log("8.append_cnt:"+updateCount);
+		                console.log(outBuffer[updateCount]);
+		                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
+		                console.log(bytesAppended);
+		                console.log(durationInSeconds);
+		                chunkEndTime[updateCount] = bytesAppended*(durationInSeconds/videoFile.size)
+		                console.log(chunkEndTime);
+		                if(updateCount == 0){
+    		                vid.play();
+    		            };
+		                updateCount++;
+		                // console.log("video played");
+		            }
 	            }
     	        catch(e){
     	        	console.log(e.name);
     	        	if (e.name == "QuotaExceededError"){
     	        		console.log("clean buffer");
-    	        		if (vid.currentTime < currentChunkEndTime){
-    	        			await sleep(currentChunkEndTime - vid.currentTime);
-    	        			cleanBuffer();
+    	        		// var prevChunkEndTime = Math.max.apply(Math, chunkEndTime.filter(function(x){return x <= vid.currentTime}));
+    	        		// var currentChunk = chunkEndTime.indexOf(prevChunkEndTime);
+    	        		if (vid.currentTime < chunkEndTime[currentChunk]){
+    	        			// await sleep(chunkEndTime - vid.currentTime);
+    	        			console.log(chunkStartTime, chunkEndTime[currentChunk]);
+    	        			cleanBuffer(chunkStartTime, chunkEndTime[currentChunk]);
+    	        			currentChunk++;
+    	        			chunkStartTime = chunkEndTime[currentChunk-1];
     	        		}else{
-	    	        		cleanBuffer();
+    	        			console.log(chunkStartTime, chunkEndTime[currentChunk]);
+	    	        		cleanBuffer(chunkStartTime, chunkEndTime[currentChunk]);
+	    	        		currentChunk++;
+	    	        		chunkStartTime = chunkEndTime[currentChunk-1];
 	    	        	}
     	        	}
     	        }
     	        finally{
-	                console.log("8.append_cnt:"+updateCount);
-	                console.log(outBuffer[updateCount]);
-	                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
-	                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
-	                updateCount++;
-	                currentChunkEndTime+=Math.ceil(outBuffer[updateCount].byteLength*(videoFile.size/durationInSeconds))
-	                vid.play();
-    	        }
+            		if(!sourceBuffer.updating){
+		                console.log("8.append_cnt:"+updateCount);
+		                console.log(outBuffer[updateCount]);
+		                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
+		                chunkEndTime[updateCount] = Math.ceil(bytesAppended*(videoFile.size/durationInSeconds))
+		                updateCount++;
+		                vid.play();
+		                // console.log("video played");
+		            }
+	            }
             }else{
                 console.log("9.start play");
                 vid.play();
@@ -246,9 +281,14 @@ function onSourceOpen(_) {
             mp4box.onSegment = function (id, user, buffer, sampleNum) {
                 console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength+",sampleNum="+sampleNum);
                 console.log("user.segmentIndex:"+user.segmentIndex);
-                outBuffer[user.segmentIndex] = buffer.slice(0) ;
-                //user.appendBuffer(outBuffer[user.segmentIndex]); 
-                user.segmentIndex++;
+                var numChunks = Math.ceil(buffer.byteLength/16384); //16384 bytes = 16kb
+                var currentByte = 0
+                for(currentChunk = 0; currentChunk < numChunks; currentChunk++){
+                    outBuffer[user.segmentIndex] = buffer.slice(currentByte, currentByte+16384);
+                    currentByte+=16384;
+                    //user.appendBuffer(outBuffer[user.segmentIndex]); 
+                    user.segmentIndex++;
+                }
             }; 
 
             var nbSamples = Math.ceil((durationInSeconds/peerNum)*24); //assuming 24 fps
@@ -286,12 +326,19 @@ function onSourceOpen(_) {
 
 // Function to avoid confusions about new peers and creator of the room
 function preInititiation(){
-	if (peerID != senderID){
-		addPeer();
-		initiatePeerConnection(peerID);
-	}else{
-		signalServer.send({"addRoom": true, "roomID": peerID}) ;
-	}
+	signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
+	signalServer.binaryType = "arraybuffer";
+	setTimeout(function(){
+	// signalServer.onopen = function(){
+		if (peerID != senderID){
+			addPeer();
+			initiatePeerConnection(peerID);
+		}else{
+			console.log(signalServer.readyState);
+			// signalServer.send(JSON.stringify({"addRoom": true, "roomID": peerID}));
+		}
+	// };
+	}, 2000);
 }
 
 
@@ -337,4 +384,14 @@ function gotMessageFromServer(message) {
 
 function logError(e) {
     console.log("error occured "+e.name + "with message " + e.message);
+}
+
+function cleanBuffer(chunkStart, chunkEnd){
+	if(!sourceBuffer.updating){
+		console.log(sourceBuffer);
+		console.log("start"+chunkStart+" end"+chunkEnd)
+		console.log("buffer removing")
+		sourceBuffer.remove(parseFloat(chunkStart.toFixed(2)), parseFloat(chunkEnd.toFixed(2)));
+		console.log("Buffer removed from "+chunkStart+" sec to "+chunkEnd+" sec");
+	}
 }
