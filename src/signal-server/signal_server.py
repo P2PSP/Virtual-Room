@@ -14,10 +14,12 @@ class Signal(WebSocket):
 		try:
 			message = json.loads(self.data)
 
-			if 'sdp' in message or 'candidate' in message:
+			if 'sessionDescriptionProtocol' in message or 'candidate' in message:
 				try:
+					print("initiating session")
 					peer_id = next(rooms["peers"].index(peer) for peer in rooms["peers"] if rooms["peers"]["peer_id_client"] == message['peerID'])
-					rooms[room_index]["peers"][peer_id][peer_self].sendMessage(str(message))
+					new_message = '{"signalConnection": "true", "server_id": '+str(peer_id)+', '
+					rooms[room_index]["peers"][peer_id][peer_self].sendMessage(new_message+str(self.data)[1:])
 				except Exception as e:
 					print("exception" + e)
 			elif 'addPeer' in message:
@@ -27,17 +29,20 @@ class Signal(WebSocket):
 				peer_id_server = len(rooms[room_index]["peers"])
 				rooms[room_index]["peers"].append({"client_id": peer_id_client, "server_id": peer_id_server, "peer_self": ""}) # for the time being I am appending the client id of peer to the index of that peer in the array on server
 				rooms[room_index]["peers"][peer_id_server]["peer_self"] = self
+				rooms[room_index]["peers"][0]["peer_self"].sendMessage(str('{"newPeer": "true", "server_id": '+str(peer_id_server)+'}'))
 				peer_id_server+=1
 				print(rooms)
 			elif 'addRoom' in message:
 				rooms.append({"roomID": message["roomID"], "peers": []})
 				print(rooms)
 			elif 'verifyRoom' in message:
-				room_index = next(rooms.index(room) for room in rooms if rooms["roomID"] == message["roomID"])
+				print("starting verification")
+				room_index = next(rooms.index(room) for room in rooms if room['roomID'] == message['roomID'])
+				print("verification in progress")
 				if not room_index is None:
-					self.sendMessage({"roomExists": "true"})
+					self.sendMessage(str('{"roomExists": "true"}'))
 				else:
-					self.sendMessage({"roomExists": "false"}) 
+					self.sendMessage(str('{"roomExists": "false"}')) 
 		except Exception as e:
 			print(e)
 

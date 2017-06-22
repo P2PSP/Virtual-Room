@@ -17,12 +17,14 @@ var outBuffer = new Array();
 var sourceBuffer;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
+var peerConnection = [];
 
 
 if (window.location.href.length - peerID.length == baseURL.length){
 	console.log(senderID);
 	senderID = window.location.replace(baseURL);
 }else{
+	history.replaceState('', '', baseURL + peerID);
 	console.log("peer is sender");
 	senderID = peerID;
 }
@@ -34,7 +36,6 @@ preInititiation();
 var currentPeer;
 
 window.onload = function(){
-history.replaceState('', '', baseURL + peerID);
 	console.log("window loaded");
 // 	history.replaceState('', '', baseURL + peerID);
 // 	generateURL();
@@ -77,13 +78,29 @@ signalServer.onmessage = function (message){
 // Used for messages apart from peer connections, for peer connection refer to gotMessageFromServer()
 function handleMessage(message){
 	console.log(message.data);
-	// message = JSON.parse(message.data);
-	console.log(message.message);
-	if (message.roomExists=="false"){
+	var decodedMessage = new TextDecoder().decode(new Uint8Array(message.data));
+	console.log(decodedMessage);
+	parsedMessage = JSON.parse(decodedMessage);
+
+	if (parsedMessage.signalConnection){
+		gotMessageFromServer(parsedMessage);
+	};
+
+	if (parsedMessage.roomExists=="false"){
 		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
 		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
 	});
 	};
+
+	if (parsedMessage.message){
+		Materialize.toast(parsedMessage.message, 2000);
+	};
+
+	// if (parsedMessage.newPeer){
+	// 	server_id = parseInt(parsedMessage.server_id)
+	// 	peersInRoom[server_id] = {"connection": ""}
+	// }
+
 }
 
 
@@ -154,7 +171,7 @@ function disconnectPeer(){
 // Should be updated such that the current peer doesn't have his/her user media appended as a video element in the current page
 function addPeer(){
 	var peerMediaElements = document.getElementById("peer-media-banner");
-	peerNumUpdated = parseInt(peerNum)+1;
+	// peerNumUpdated = parseInt(peerNum)+1;
 	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("video");
 	peerMediaVideo.setAttribute("class", "z-depth-5");
@@ -166,8 +183,8 @@ function addPeer(){
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
 	peerMediaElements.appendChild(peerMediaDiv);
-	peersInRoom[peerNum].peerID = peerID;
-	peerNum = peerNumUpdated;
+	// peersInRoom[peerNum].peerID = peerID;
+	// peerNum = peerNumUpdated;
 }	
 
 
@@ -331,7 +348,8 @@ function preInititiation(){
 	setTimeout(function(){
 	// signalServer.onopen = function(){
 		if (peerID != senderID){
-			addPeer();
+			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
+			// addPeer();    // Will resume this function while on the feature of video calling
 			initiatePeerConnection(peerID);
 		}else{
 			console.log(signalServer.readyState);
@@ -344,41 +362,43 @@ function preInititiation(){
 
 // Initiating peer connection with the host
 function initiatePeerConnection(peerID){
-	currentPeer = peersInRoom[peerNum];
-	currentPeer.peerConnection = new RTCPeerConnection(serverConfig);
+	peerConnection[currentPeer] = new RTCPeerConnection(serverConfig); // Initiation of RTC connection of peers other than host
 
-	currentPeer.peerConnection.onicecandidate = function(evt){
+	peerConnection[currentPeer].onicecandidate = function(evt){
 		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
-	currentPeer.peerConnection.onnegotiationneeded = function(){
-		currentPeer.peerConnection.createOffer(createLocalDescription(offer), logError());
+	peerConnection[currentPeer].onnegotiationneeded = function(){
+		peerConnection[currentPeer].createOffer(createLocalDescription(offer), logError());
 	};
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
 function createLocalDescription(offer, sendOffer){
-	return currentPeer.peerConnection.setLocalDescription(offer);
+	return peerConnection[currentPeer].setLocalDescription(offer);
 }
 
 // Sending offer to connect(As a callback to createLocalDescription)
 function sendOffer(){
-	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": currentPeer.peerConnection.localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
+	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
 }
 
 // handle message from server to create connections
 function gotMessageFromServer(message) {
     // if(!currentPeer) start(false);
+    // Getting parsed message from handleMessage
 
-    var signal = JSON.parse(message.data);
-    if(signal.sdp) {
-        peerConnection.setRemoteDescription(new RTCSessionDescription(signal.sdp), function() {
-            if(signal.sdp.type == 'offer') {
+    currentPeer = parseInt(message.server_id); // server ID
+    peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
+
+    if(message.sdp) {
+        peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sdp), function() {
+            if(message.sdp.type == 'offer') {
                 peerConnection.createAnswer(createLocalDescription, logError);
             }
         });
-    } else if(signal.ice) {
-        peerConnection.addIceCandidate(new RTCIceCandidate(signal.ice));
+    } else if(message.ice) {
+        peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.ice));
     }
 }
 
