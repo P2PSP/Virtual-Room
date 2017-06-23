@@ -369,7 +369,7 @@ function initiatePeerConnection(peerID){
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
-		peerConnection[currentPeer].createOffer(createLocalDescription(offer), logError());
+		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
 }
 
@@ -379,8 +379,9 @@ function createLocalDescription(offer, sendOffer){
 }
 
 // Sending offer to connect(As a callback to createLocalDescription)
-function sendOffer(){
-	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
+function createLocalDescription(offer, sendOffer){
+	peerConnection[currentPeer].setLocalDescription(offer);
+	sendOffer();
 }
 
 // handle message from server to create connections
@@ -394,7 +395,7 @@ function gotMessageFromServer(message) {
     if(message.sdp) {
         peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sdp), function() {
             if(message.sdp.type == 'offer') {
-                peerConnection.createAnswer(createLocalDescription, logError);
+                peerConnection.createAnswer(createLocalDescription(offer, sendOffer), logError);
             }
         });
     } else if(message.ice) {

@@ -17,7 +17,7 @@ var outBuffer = new Array();
 var sourceBuffer;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
-var peerNumUpdated;
+var peerConnection = [];
 
 console.log(window.location.href.length - peerID.length == baseURL.length);
 console.log(window.location.href);
@@ -344,13 +344,13 @@ function onSourceOpen(_) {
 
 // Function to avoid confusions about new peers and creator of the room
 function preInititiation(){
-	console.log("initiating");
 	signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
 	signalServer.binaryType = "arraybuffer";
 	setTimeout(function(){
 	// signalServer.onopen = function(){
 		if (peerID != senderID){
-			addPeer();
+			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
+			// addPeer();    // Will resume this function while on the feature of video calling
 			initiatePeerConnection(peerID);
 		}else{
 			console.log(signalServer.readyState);
@@ -363,31 +363,38 @@ function preInititiation(){
 
 // Initiating peer connection with the host
 function initiatePeerConnection(peerID){
-	console.log("initiating peer connection");
-	currentPeer = peersInRoom[parseInt(peerNum)];
-	console.log(currentPeer);
-	peersInRoom[parseInt(peerNum)] = new RTCPeerConnection(serverConfig);
-	console.log(peersInRoom[parseInt(peerNum)]);
+	peerConnection[currentPeer] = new RTCPeerConnection(serverConfig); // Initiation of RTC connection of peers other than host
 
-	peersInRoom[parseInt(peerNum)].onicecandidate = function(evt){
-		console.log("sending msg");
+	console.log(peerConnection[currentPeer]);
+	log_connection();
+	peerConnection[currentPeer].onicecandidate = function(evt){
+		console.log("ice");
 		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
-	peersInRoom[parseInt(peerNum)].onnegotiationneeded = function(){
-		console.log("sending msg")
-		peersInRoom[parseInt(peerNum)].createOffer(createLocalDescription(offer), logError());
+	peerConnection[currentPeer].onnegotiationneeded = function(){
+		console.log("negotiation");
+		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
 }
 
+function log_connection(){
+	console.log(peerConnection);
+	console.log(currentPeer);
+	console.log(peerConnection[currentPeer]);
+	peerConnection[currentPeer].onnegotiationneeded = function(){
+		console.log(currentPeer);
+	};
+};
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
 function createLocalDescription(offer, sendOffer){
-	return peersInRoom[parseInt(peerNum)].setLocalDescription(offer);
+	peerConnection[currentPeer].setLocalDescription(offer);
+	sendOffer();
 }
 
 // Sending offer to connect(As a callback to createLocalDescription)
 function sendOffer(){
-	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peersInRoom[parseInt(peerNum)].localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
+	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
 }
 
 // handle message from server to create connections
@@ -395,14 +402,17 @@ function gotMessageFromServer(message) {
     // if(!currentPeer) start(false);
     // Getting parsed message from handleMessage
 
-    if(message.sessionDescriptionProtocol) {
-        peerConnection.setRemoteDescription(new RTCSessionDescription(message.sessionDescriptionProtocol), function() {
-            if(message.sessionDescriptionProtocol.type == 'offer') {
-                peerConnection.createAnswer(createLocalDescription, logError);
+    currentPeer = parseInt(message.server_id); // server ID
+    peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
+
+    if(message.sdp) {
+        peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sdp), function() {
+            if(message.sdp.type == 'offer') {
+                peerConnection.createAnswer(createLocalDescription(offer, sendOffer), logError);
             }
         });
     } else if(message.ice) {
-        peerConnection.addIceCandidate(new RTCIceCandidate(message.ice));
+        peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.ice));
     }
 }
 

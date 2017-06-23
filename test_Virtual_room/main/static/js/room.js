@@ -365,18 +365,31 @@ function preInititiation(){
 function initiatePeerConnection(peerID){
 	peerConnection[currentPeer] = new RTCPeerConnection(serverConfig); // Initiation of RTC connection of peers other than host
 
+	console.log(peerConnection[currentPeer]);
+
 	peerConnection[currentPeer].onicecandidate = function(evt){
+		console.log("ice candidate");
 		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
-		peerConnection[currentPeer].createOffer(createLocalDescription(offer), logError());
+		console.log("negotiation initiated");
+		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
 }
 
+// function log_connection(){
+// 	console.log(peerConnection);
+// 	console.log(currentPeer);
+// 	console.log(peerConnection[currentPeer]);
+// 	peerConnection[currentPeer].onnegotiationneeded = function(){
+// 		console.log(currentPeer);
+// 	};
+// };
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
 function createLocalDescription(offer, sendOffer){
-	return peerConnection[currentPeer].setLocalDescription(offer);
+	peerConnection[currentPeer].setLocalDescription(offer);
+	sendOffer();
 }
 
 // Sending offer to connect(As a callback to createLocalDescription)
@@ -395,7 +408,7 @@ function gotMessageFromServer(message) {
     if(message.sdp) {
         peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sdp), function() {
             if(message.sdp.type == 'offer') {
-                peerConnection.createAnswer(createLocalDescription, logError);
+                peerConnection.createAnswer(createLocalDescription(offer, sendOffer), logError);
             }
         });
     } else if(message.ice) {
