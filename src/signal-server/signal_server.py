@@ -39,7 +39,7 @@ class Signal(WebSocket):
 				print("starting verification")
 				room_index = next(rooms.index(room) for room in rooms if room['roomID'] == message['roomID'])
 				print("verification in progress")
-				if not room_index is None:
+				if room_index is not None:
 					self.sendMessage(str('{"roomExists": "true"}'))
 				else:
 					self.sendMessage(str('{"roomExists": "false"}')) 

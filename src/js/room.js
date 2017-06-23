@@ -3,7 +3,7 @@ var vidHeight = vid.getAttribute("height");
 var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
-var baseURL = "http://127.0.0.1:3000/room/"; // Will be changed accordingly
+var baseURL = "http://127.0.0.1:3000/room/new/"; // Will be changed accordingly
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
@@ -19,10 +19,12 @@ var chunkSize = 16*1024; // 16kb
 var signalServer;
 var peerConnection = [];
 
+console.log(peerID);
 
 if (window.location.href.length - peerID.length == baseURL.length){
 	console.log(senderID);
 	senderID = window.location.replace(baseURL);
+	console.log(senderID);
 }else{
 	history.replaceState('', '', baseURL + peerID);
 	console.log("peer is sender");
@@ -159,7 +161,7 @@ function copyBroadcastURL(){
 
 // Function to be modified to contain logic of generating url
 function generateURL(){
-	broadcastURL.innerHTML = baseURL+peerID;
+	broadcastURL.innerHTML = baseURL+senderID;
 }
 
 // disconnect the peer from the room
@@ -177,14 +179,14 @@ function addPeer(){
 	peerMediaVideo.setAttribute("class", "z-depth-5");
 	var peerMediaSource = document.createElement("source");
 	peerMediaVideo.setAttribute("height", "150");
-	peerMediaSource.src = "../bbb-cbr-1300-frag.mp4"; // to be updated with UserMedia
+	// peerMediaSource.src = "../bbb-cbr-1300-frag.mp4"; // to be updated with UserMedia
 	peerMediaSource.id = "user-media-"+peerID;
 	peerMediaVideo.appendChild(peerMediaSource);
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
 	peerMediaElements.appendChild(peerMediaDiv);
-	// peersInRoom[peerNum].peerID = peerID;
-	// peerNum = peerNumUpdated;
+	peersInRoom[peerNum].peerID = peerID;
+	peerNum = peerNumUpdated;
 }	
 
 
@@ -364,24 +366,28 @@ function preInititiation(){
 function initiatePeerConnection(peerID){
 	peerConnection[currentPeer] = new RTCPeerConnection(serverConfig); // Initiation of RTC connection of peers other than host
 
+	console.log(peerConnection[currentPeer]);
+
 	peerConnection[currentPeer].onicecandidate = function(evt){
+		console.log("ice candidate");
 		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
+		console.log("negotiation initiated");
 		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
 function createLocalDescription(offer, sendOffer){
-	return peerConnection[currentPeer].setLocalDescription(offer);
+	peerConnection[currentPeer].setLocalDescription(offer);
+	sendOffer();
 }
 
 // Sending offer to connect(As a callback to createLocalDescription)
-function createLocalDescription(offer, sendOffer){
-	peerConnection[currentPeer].setLocalDescription(offer);
-	sendOffer();
+function sendOffer(){
+	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
 }
 
 // handle message from server to create connections
