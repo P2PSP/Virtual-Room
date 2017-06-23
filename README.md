@@ -13,7 +13,15 @@ Now install the requirements
 sudo pip install -r requirements.txt 
 ```
 
-To test the server, go into the directory `test_Virtual_room` - 
+To test the server
+
+1. Go into the directory `src/signal-server/` -
+
+```
+python signal_server.py
+```
+
+2. Go into the directory `test_Virtual_room` - 
 
 ``` 
 python manage.py runserver 3000

@@ -345,7 +345,7 @@ function onSourceOpen(_) {
 function preInititiation(){
 	signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
 	signalServer.binaryType = "arraybuffer";
-	setTimeout(function(){
+	// setTimeout(function(){
 	// signalServer.onopen = function(){
 		if (peerID != senderID){
 			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
@@ -356,7 +356,7 @@ function preInititiation(){
 			// signalServer.send(JSON.stringify({"addRoom": true, "roomID": peerID}));
 		}
 	// };
-	}, 2000);
+	// }, 2000);
 }
 
 

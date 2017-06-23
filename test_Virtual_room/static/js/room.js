@@ -346,7 +346,7 @@ function onSourceOpen(_) {
 function preInititiation(){
 	signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
 	signalServer.binaryType = "arraybuffer";
-	setTimeout(function(){
+	// setTimeout(function(){
 	// signalServer.onopen = function(){
 		if (peerID != senderID){
 			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
@@ -357,7 +357,7 @@ function preInititiation(){
 			// signalServer.send(JSON.stringify({"addRoom": true, "roomID": peerID}));
 		}
 	// };
-	}, 2000);
+	// }, 2000);
 }
 
 
@@ -366,26 +366,26 @@ function initiatePeerConnection(peerID){
 	peerConnection[currentPeer] = new RTCPeerConnection(serverConfig); // Initiation of RTC connection of peers other than host
 
 	console.log(peerConnection[currentPeer]);
-	log_connection();
+
 	peerConnection[currentPeer].onicecandidate = function(evt){
-		console.log("ice");
+		console.log("ice candidate");
 		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
-		console.log("negotiation");
+		console.log("negotiation initiated");
 		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
 }
 
-function log_connection(){
-	console.log(peerConnection);
-	console.log(currentPeer);
-	console.log(peerConnection[currentPeer]);
-	peerConnection[currentPeer].onnegotiationneeded = function(){
-		console.log(currentPeer);
-	};
-};
+// function log_connection(){
+// 	console.log(peerConnection);
+// 	console.log(currentPeer);
+// 	console.log(peerConnection[currentPeer]);
+// 	peerConnection[currentPeer].onnegotiationneeded = function(){
+// 		console.log(currentPeer);
+// 	};
+// };
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
 function createLocalDescription(offer, sendOffer){
 	peerConnection[currentPeer].setLocalDescription(offer);
