@@ -18,12 +18,14 @@ var sourceBuffer;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
 var peerConnection = [];
+var peerConnections = []
 
 console.log(peerID);
 
 if (window.location.href.length - peerID.length == baseURL.length){
-	console.log(senderID);
-	senderID = window.location.replace(baseURL);
+	console.log("peer is not sender");
+	var windowLocation = window.location.href;
+	senderID = windowLocation.replace(baseURL, "");
 	console.log(senderID);
 }else{
 	history.replaceState('', '', baseURL + peerID);
@@ -92,6 +94,20 @@ function handleMessage(message){
 		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
 		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
 	});
+	};
+
+	// Initiating multiple connections with peer for new peer 
+	if (parsedMessage.peer_id_list){
+		var currentPeerNum; // defining the peerConnection index
+		parsedMessage.peer_id_list.pop(); // an array containing peer ids excluding that of the receiving peer
+		parsedMessage.peer_id_list.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
+		peerConnections = parsedMessage.peer_id_list;
+		console.log(peerConnections);
+		for (currentPeerNum = 0; currentPeerNum<peerConnections.length; currentPeerNum++){
+				currentPeer = peerConnections[currentPeerNum]
+				console.log(currentPeer);
+				initiatePeerConnection(currentPeer);
+			};
 	};
 
 	if (parsedMessage.message){
@@ -377,6 +393,7 @@ function initiatePeerConnection(peerID){
 		console.log("negotiation initiated");
 		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
+	setupDataChannel(currentPeer);
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
@@ -391,7 +408,7 @@ function sendOffer(){
 }
 
 // handle message from server to create connections
-function gotMessageFromServer(message) {
+function gotMessageFromServer(message, setupDataChannel) {
     // if(!currentPeer) start(false);
     // Getting parsed message from handleMessage
 
@@ -407,6 +424,12 @@ function gotMessageFromServer(message) {
     } else if(message.ice) {
         peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.ice));
     }
+
+    // setupDataChannel(currentPeer);
+	peerConnection[currentPeer].ondatachannel = function (event) {
+		peerChannel[currentPeer] = event.channel;
+		setupChannel(currentPeer);
+	};
 }
 
 function logError(e) {
@@ -421,4 +444,17 @@ function cleanBuffer(chunkStart, chunkEnd){
 		sourceBuffer.remove(parseFloat(chunkStart.toFixed(2)), parseFloat(chunkEnd.toFixed(2)));
 		console.log("Buffer removed from "+chunkStart+" sec to "+chunkEnd+" sec");
 	}
+}
+
+function createDataChannel(currentPeer){
+	dataChannelOptions = {
+		'id': currentPeer
+	}
+	peerChannel[currentPeer] = peerConnection[currentPeer].createDataChannel("Channel"+currentPeer, dataChannelOptions)
+	setupChannel(currentPeer);
+}
+
+// setting up channel to transmit data betweeen the peers
+function setupChannel(currentPeer){
+
 }

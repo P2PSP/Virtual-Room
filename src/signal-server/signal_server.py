@@ -19,21 +19,25 @@ class Signal(WebSocket):
 					print("initiating session")
 					peer_id = next(rooms["peers"].index(peer) for peer in rooms["peers"] if rooms["peers"]["peer_id_client"] == message['peerID'])
 					new_message = '{"signalConnection": "true", "server_id": '+str(peer_id)+', '
-					rooms[room_index]["peers"][peer_id][peer_self].sendMessage(new_message+str(self.data)[1:])
+					rooms[room_index]["peers"][peer_id]["peer_self"].sendMessage(new_message+str(self.data)[1:])
 				except Exception as e:
 					print("exception" + e)
 			elif 'addPeer' in message:
 				peer_id_client = message["peerID"]
 				room_index = next(rooms.index(room) for room in rooms if room['roomID'] == message['roomID'])
 				print(room_index)
-				peer_id_server = len(rooms[room_index]["peers"])
+				peer_id_server = 0 # if the user is hosting the room,rooms[room_index]["peers"] is not an array
+				if len(rooms[room_index]["peers"]) > 0: # executing the below lines only if the peer is not a host
+					peer_id_server = rooms[room_index]["peers"][-1]["server_id"] + 1
 				rooms[room_index]["peers"].append({"client_id": peer_id_client, "server_id": peer_id_server, "peer_self": ""}) # for the time being I am appending the client id of peer to the index of that peer in the array on server
+				rooms[room_index]["peer_id_list"].append(peer_id_server)
 				rooms[room_index]["peers"][peer_id_server]["peer_self"] = self
+				rooms[room_index]["peers"][peer_id_server]["peer_self"].sendMessage(str('{"peer_id_list": '+str(rooms[room_index]["peer_id_list"])+'}'))
 				rooms[room_index]["peers"][0]["peer_self"].sendMessage(str('{"newPeer": "true", "server_id": '+str(peer_id_server)+'}'))
-				peer_id_server+=1
+				# peer_id_server+=1
 				print(rooms)
 			elif 'addRoom' in message:
-				rooms.append({"roomID": message["roomID"], "peers": []})
+				rooms.append({"roomID": message["roomID"], "peers": [], "peer_id_list": []})
 				print(rooms)
 			elif 'verifyRoom' in message:
 				print("starting verification")
