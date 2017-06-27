@@ -18,7 +18,9 @@ var sourceBuffer;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
 var peerConnection = [];
-var peerConnections = []
+var peerConnections = [];
+var peerIDServer;
+var peerIndex = 0; // The index of array peerConnections
 
 console.log(peerID);
 
@@ -99,15 +101,19 @@ function handleMessage(message){
 	// Initiating multiple connections with peer for new peer 
 	if (parsedMessage.peer_id_list){
 		var currentPeerNum; // defining the peerConnection index
-		parsedMessage.peer_id_list.pop(); // an array containing peer ids excluding that of the receiving peer
-		parsedMessage.peer_id_list.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
-		peerConnections = parsedMessage.peer_id_list;
-		console.log(peerConnections);
-		for (currentPeerNum = 0; currentPeerNum<peerConnections.length; currentPeerNum++){
-				currentPeer = peerConnections[currentPeerNum]
-				console.log(currentPeer);
-				initiatePeerConnection(currentPeer);
-			};
+		peerIDServer = parsedMessage.peer_id_list.pop(); // an array containing peer ids excluding that of the receiving peer 
+		if (peerIDServer==0){
+			console.log("The host peer");
+		}else{
+			parsedMessage.peer_id_list.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
+			peerConnections = parsedMessage.peer_id_list; // peer ID list on initiating the rtc connection by a new peer
+			console.log(peerConnections);
+			for (currentPeerNum = 0; currentPeerNum<peerConnections.length; currentPeerNum++){
+					currentPeer = peerConnections[currentPeerNum]
+					console.log(currentPeer);
+					initiatePeerConnection(currentPeer);
+				};
+		}
 	};
 
 	if (parsedMessage.message){
@@ -254,6 +260,8 @@ function onSourceOpen(_) {
             		if(!sourceBuffer.updating){
 		                console.log("8.append_cnt:"+updateCount);
 		                console.log(outBuffer[updateCount]);
+		                var chunk = outBuffer[updateCount];
+		                readyChunk(chunk); // send chunk to data channel to transmit to other peers
 		                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
 		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                console.log(bytesAppended);
@@ -291,7 +299,9 @@ function onSourceOpen(_) {
             		if(!sourceBuffer.updating){
 		                console.log("8.append_cnt:"+updateCount);
 		                console.log(outBuffer[updateCount]);
-		                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+		                sourceBuffer.appendBuffer(outBuffer[updateCount]);
+		                var chunk = outBuffer[updateCount];
+		                readyChunk(chunk); // send chunk to data channel to transmit to other peers
 		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                chunkEndTime[updateCount] = Math.ceil(bytesAppended*(videoFile.size/durationInSeconds))
 		                updateCount++;
@@ -393,7 +403,7 @@ function initiatePeerConnection(peerID){
 		console.log("negotiation initiated");
 		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
 	};
-	setupDataChannel(currentPeer);
+	createDataChannel(currentPeer);
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
@@ -408,7 +418,7 @@ function sendOffer(){
 }
 
 // handle message from server to create connections
-function gotMessageFromServer(message, setupDataChannel) {
+function gotMessageFromServer(message) {
     // if(!currentPeer) start(false);
     // Getting parsed message from handleMessage
 
@@ -454,7 +464,58 @@ function createDataChannel(currentPeer){
 	setupChannel(currentPeer);
 }
 
+
+// Send chunk to the appropriate peer according to round robin scheduling
+// the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
+function sendChunk(chunk){
+	var senderID = chunk.slice(0,1)[0];
+	var chunkNum = chunk.slice(1,2)[0];
+	var streamSend = chunk.slice(2);
+
+	peerIndex+=(chunkNum+peerIndex)%(peerConnections.length+2); // Since the two peers, the host and the peer itself were removed from the peer list
+	try{
+		peerChannel[peerConnections[peerIndex]].send(streamSend);
+	}
+	catch(e){
+		Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
+	}
+}
+
+function readyChunk(chunk ,sendChunk){
+		var stream = chunk;
+		var senderID = new Uint8Array(1);
+		var chunkNum = new Uint8Array(1);
+		var chunkBuffer = new Uint8Array(stream);
+		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
+
+		senderID[0] = peerIDServer;
+		chunkNum[0] = updateCount;
+
+		streamMessage.set(senderID);
+		streamMessage.set(chunkNum);
+		streamMessage.set(chunkBuffer);
+
+		sendChunk(streamMessage);	
+}
+
 // setting up channel to transmit data betweeen the peers
 function setupChannel(currentPeer){
 
-}
+	peerChannel[currentPeer].onopen = function(event){
+		peerConnections.push(currentPeer); // updating the peer list
+	};
+
+	peerChannel[currentPeer].onmessage = function (event) {
+		var streamReceived = event.data;
+		var streamSender = streamReceived.slice(0,1)[0];
+		var chunkNum = streamReceived.slice(1,2)[0];
+		var chunkBuffer = streamReceived.slice(2);
+		var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
+
+		newStreamMessage.set(senderID);
+		newStreamMessage.set(chunkNum);
+		newStreamMessage.set(chunkBuffer);
+
+		sendChunk(newStreamMessage);
+	}
+};
