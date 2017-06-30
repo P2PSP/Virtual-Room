@@ -20,7 +20,11 @@ var signalServer;
 var peerConnection = [];
 var peerConnections = [];
 var peerIDServer;
+var peerChannel = [];
 var peerIndex = 0; // The index of array peerConnections
+var maxQueueSize = 1024; // Considering max peers are 256 and having a safe buffer of 4 chunks/peer before any element in the queue is been replaced
+var queue = new Array(maxQueueSize);
+var chunkToPlay = 0;
 
 console.log(peerID);
 
@@ -83,10 +87,9 @@ signalServer.onmessage = function (message){
 
 // Used for messages apart from peer connections, for peer connection refer to gotMessageFromServer()
 function handleMessage(message){
-	console.log(message.data);
 	var decodedMessage = new TextDecoder().decode(new Uint8Array(message.data));
-	console.log(decodedMessage);
 	parsedMessage = JSON.parse(decodedMessage);
+	console.log(parsedMessage);
 
 	if (parsedMessage.signalConnection){
 		gotMessageFromServer(parsedMessage);
@@ -100,13 +103,17 @@ function handleMessage(message){
 
 	// Initiating multiple connections with peer for new peer 
 	if (parsedMessage.peer_id_list){
+		var tempPeerList = parsedMessage.peer_id_list;
+		console.log(tempPeerList);
 		var currentPeerNum; // defining the peerConnection index
-		peerIDServer = parsedMessage.peer_id_list.pop(); // an array containing peer ids excluding that of the receiving peer 
+		peerIDServer = tempPeerList.pop(); // an array containing peer ids excluding that of the receiving peer 
+		console.log(tempPeerList);
 		if (peerIDServer==0){
 			console.log("The host peer");
 		}else{
-			parsedMessage.peer_id_list.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
-			peerConnections = parsedMessage.peer_id_list; // peer ID list on initiating the rtc connection by a new peer
+			console.log(tempPeerList);
+			tempPeerList.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
+			peerConnections = tempPeerList; // peer ID list on initiating the rtc connection by a new peer
 			console.log(peerConnections);
 			for (currentPeerNum = 0; currentPeerNum<peerConnections.length; currentPeerNum++){
 					currentPeer = peerConnections[currentPeerNum]
@@ -221,19 +228,35 @@ function fragmentMP4(){
 	    var mediaSource = new MediaSource();
 	    //create an URL (from mediaSource OBJ) as video's source
 	    vid.src = URL.createObjectURL(mediaSource);
-	    mediaSource.addEventListener('sourceopen', onSourceOpen);
+	    mediaSource.addEventListener('sourceopen', setSourceBuffer);
 	}else{
     console.error('Unsupported MIME type or codec: ', mimeCodec);
 	}
+
+	onFragment();
 }
 
-function onSourceOpen(_) {
-    console.log("open");
+mimeCodec = 'video/mp4; codecs="avc1.4d0020"';
+if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
+    var mediaSource = new MediaSource();
+    //create an URL (from mediaSource OBJ) as video's source
+    vid.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener('sourceopen', setSourceBuffer);
+}else{
+	console.error('Unsupported MIME type or codec: ', mimeCodec);
+}
+
+function setSourceBuffer(){
     var mediaSource = this;
     sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
     sourceBuffer.segmentIndex = 0;
     sourceBuffer.AppendMode = "sequence";
     sourceBuffer.mode = "sequence";
+
+}
+
+function onFragment(_) {
+    console.log("open");
     var videoFile = vidFile.files[0];
 	// var vidURL = URL.createObjectURL(videoFile);
 	// vid.src = vidURL;
@@ -258,10 +281,10 @@ function onSourceOpen(_) {
             if(updateCount < initializeSegments[0].user.segmentIndex){
             	try{
             		if(!sourceBuffer.updating){
+            			console.log(sourceBuffer);
 		                console.log("8.append_cnt:"+updateCount);
 		                console.log(outBuffer[updateCount]);
 		                var chunk = outBuffer[updateCount];
-		                readyChunk(chunk); // send chunk to data channel to transmit to other peers
 		                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
 		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                console.log(bytesAppended);
@@ -271,6 +294,7 @@ function onSourceOpen(_) {
 		                if(updateCount == 0){
     		                vid.play();
     		            };
+		                readyChunk(chunk, updateCount); // send chunk to data channel to transmit to other peers
 		                updateCount++;
 		                // console.log("video played");
 		            }
@@ -301,7 +325,7 @@ function onSourceOpen(_) {
 		                console.log(outBuffer[updateCount]);
 		                sourceBuffer.appendBuffer(outBuffer[updateCount]);
 		                var chunk = outBuffer[updateCount];
-		                readyChunk(chunk); // send chunk to data channel to transmit to other peers
+		                readyChunk(chunk, updateCount); // send chunk to data channel to transmit to other peers
 		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                chunkEndTime[updateCount] = Math.ceil(bytesAppended*(videoFile.size/durationInSeconds))
 		                updateCount++;
@@ -396,25 +420,33 @@ function initiatePeerConnection(peerID){
 
 	peerConnection[currentPeer].onicecandidate = function(evt){
 		console.log("ice candidate");
-		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": currentPeer["peerID"], "senderID": senderID}));
+		signalServer.send(JSON.stringify({"candidate": evt.candidate, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
 		console.log("negotiation initiated");
-		peerConnection[currentPeer].createOffer(createLocalDescription(offer, sendOffer), logError());
+		peerConnection[currentPeer].createOffer().then(function(offer){
+			createLocalDescription(offer);
+		})
+		.catch(logError)
 	};
 	createDataChannel(currentPeer);
 }
 
-// Create Local description for a new peer in the room(Generate Local description containing session description protocol)
-function createLocalDescription(offer, sendOffer){
-	peerConnection[currentPeer].setLocalDescription(offer);
-	sendOffer();
-}
-
 // Sending offer to connect(As a callback to createLocalDescription)
 function sendOffer(){
-	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": currentPeer.peerID, "senderID": senderID}));
+	console.log('offer sent')
+	signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
+}
+
+// Create Local description for a new peer in the room(Generate Local description containing session description protocol)
+function createLocalDescription(offer){
+	peerConnection[currentPeer].setLocalDescription(offer)
+	.then(function(){
+		console.log("offer sent");
+		signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
+	})
+	// sendOffer();
 }
 
 // handle message from server to create connections
@@ -423,16 +455,30 @@ function gotMessageFromServer(message) {
     // Getting parsed message from handleMessage
 
     currentPeer = parseInt(message.server_id); // server ID
-    peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
+    if (!peerConnection[currentPeer]){ // ice candidate may fire multiple times along with sdp, we want to establish one connection per peer
+        peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
+        console.log(currentPeer);
+        console.log(peerConnection[currentPeer]);
+    }
 
-    if(message.sdp) {
-        peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sdp), function() {
-            if(message.sdp.type == 'offer') {
-                peerConnection.createAnswer(createLocalDescription(offer, sendOffer), logError);
+    if(message.sessionDescriptionProtocol) {
+        peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sessionDescriptionProtocol), function() {
+            if(message.sessionDescriptionProtocol.type == 'offer') {
+                peerConnection[currentPeer].createAnswer().then(function(offer){
+                	createLocalDescription(offer);
+                })
+                .catch(logError)
+            }else{
+            	console.log(currentPeer);
+            	peerConnection[currentPeer].setRemoteDescription(message.sessionDescriptionProtocol)
+            	.catch(logError);
             }
+
         });
-    } else if(message.ice) {
-        peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.ice));
+    } else if(message.candidate) {
+    	console.log("adding");
+        peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.candidate));
+    	console.log("added");
     }
 
     // setupDataChannel(currentPeer);
@@ -468,20 +514,25 @@ function createDataChannel(currentPeer){
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
 function sendChunk(chunk){
+	console.log(chunk);
+	console.log(chunk.slice(0,1));
 	var senderID = chunk.slice(0,1)[0];
 	var chunkNum = chunk.slice(1,2)[0];
 	var streamSend = chunk.slice(2);
 
 	peerIndex+=(chunkNum+peerIndex)%(peerConnections.length+2); // Since the two peers, the host and the peer itself were removed from the peer list
+	console.log(peerIndex);
+	console.log(peerConnections[peerIndex]);
 	try{
-		peerChannel[peerConnections[peerIndex]].send(streamSend);
+		peerChannel[peerConnections[peerIndex]].send(chunk);
 	}
 	catch(e){
 		Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
 	}
 }
 
-function readyChunk(chunk ,sendChunk){
+// function only used by the host peer
+function readyChunk(chunk, updateCount){
 		var stream = chunk;
 		var senderID = new Uint8Array(1);
 		var chunkNum = new Uint8Array(1);
@@ -494,6 +545,7 @@ function readyChunk(chunk ,sendChunk){
 		streamMessage.set(senderID);
 		streamMessage.set(chunkNum);
 		streamMessage.set(chunkBuffer);
+		console.log(streamMessage);
 
 		sendChunk(streamMessage);	
 }
@@ -507,9 +559,15 @@ function setupChannel(currentPeer){
 
 	peerChannel[currentPeer].onmessage = function (event) {
 		var streamReceived = event.data;
-		var streamSender = streamReceived.slice(0,1)[0];
-		var chunkNum = streamReceived.slice(1,2)[0];
+		console.log(streamReceived);
+		var streamSender = new Uint8Array(streamReceived.slice(0,1)[0]);
+		console.log(streamSender);
+		var chunkNum = new Uint8Array(streamReceived.slice(1,2)[0]);
 		var chunkBuffer = streamReceived.slice(2);
+		console.log(chunkBuffer.byteLength);
+
+		gotChunk(chunkBuffer ,chunkNum);
+
 		var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
 
 		newStreamMessage.set(senderID);
@@ -519,3 +577,26 @@ function setupChannel(currentPeer){
 		sendChunk(newStreamMessage);
 	}
 };
+
+// function to be called when data channel receives the chunk
+function gotChunk(chunk, chunkNum){
+	queue[chunkNum%maxQueueSize] = chunk;
+	console.log(queue);
+	appendChunk(queue);
+}
+
+function appendChunk(queue){
+	if (queue[chunkToPlay]!=null){
+		if(!sourceBuffer.updating){
+			var chunkAppend = new Uint8Array(queue[chunkToPlay])
+			console.log(chunkAppend);
+			console.log(sourceBuffer);
+			sourceBuffer.appendBuffer(chunkAppend);
+			vid.play();
+			chunkToPlay = (chunkToPlay+1)%maxQueueSize;
+		}
+		else{
+			Materialize.toast("Buffering! Waiting for chunk to arrive");
+		}
+	}
+}

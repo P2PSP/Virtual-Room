@@ -17,9 +17,11 @@ class Signal(WebSocket):
 			if 'sessionDescriptionProtocol' in message or 'candidate' in message:
 				try:
 					print("initiating session")
-					peer_id = next(rooms["peers"].index(peer) for peer in rooms["peers"] if rooms["peers"]["peer_id_client"] == message['peerID'])
+					room_index = next(rooms.index(room) for room in rooms if room['roomID'] == message['senderID'])
+					peer_id = next(rooms[room_index]['peers'].index(peer) for peer in rooms[room_index]['peers'] if peer['client_id'] == message['peerID'])
 					new_message = '{"signalConnection": "true", "server_id": '+str(peer_id)+', '
-					rooms[room_index]["peers"][peer_id]["peer_self"].sendMessage(new_message+str(self.data)[1:])
+					send_to = message["sendTo"]
+					rooms[room_index]["peers"][send_to]["peer_self"].sendMessage(new_message+str(self.data)[1:])
 				except Exception as e:
 					print("exception" + e)
 			elif 'addPeer' in message:
