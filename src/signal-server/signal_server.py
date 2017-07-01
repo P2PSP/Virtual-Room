@@ -17,6 +17,8 @@ class Signal(WebSocket):
 			if 'sessionDescriptionProtocol' in message or 'candidate' in message:
 				try:
 					print("initiating session")
+					print(message["sendTo"])
+					print(message["peerID"])
 					room_index = next(rooms.index(room) for room in rooms if room['roomID'] == message['senderID'])
 					peer_id = next(rooms[room_index]['peers'].index(peer) for peer in rooms[room_index]['peers'] if peer['client_id'] == message['peerID'])
 					new_message = '{"signalConnection": "true", "server_id": '+str(peer_id)+', '
