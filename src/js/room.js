@@ -536,15 +536,8 @@ function sendChunk(chunk){
 	var streamSend = chunk.slice(2);
 	console.log(peerConnections);
 
-	peerIndex=(chunkNum+peerIndex)%(peerConnections.length); // Since the the peer itself were removed from the peer list
-	console.log(peerIndex);
-	if(peerConnections[peerIndex] == 0){
-		console.log("peer is host");
-		peerIndex+=(chunkNum+peerIndex+1)%(peerConnections.length+1); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
-	}
-	console.log(peerConnections[peerIndex]);
-	if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
-		console.log("trying to send chunk");
+	if(senderID == 0){ // round robin when splitter sends the chunk
+		peerIndex = (chunkNum)%(peerConnections.length);
 		try{
 			console.log(peerChannel);
 			console.log(peerChannel[peerConnections[peerIndex]]);
@@ -554,6 +547,30 @@ function sendChunk(chunk){
 		catch(e){
 			console.log(e);
 			Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
+		}
+	}else{ // when peer transmits their share of chunks to all other peers
+
+		var peerIndex = 0;
+		for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
+			console.log(peerIndex);
+			if(peerConnections[peerIndex] == 0){
+				console.log("peer is host");
+				peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+			}
+			console.log(peerConnections[peerIndex]);
+			if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
+				console.log("trying to send chunk");
+				try{
+					console.log(peerChannel);
+					console.log(peerChannel[peerConnections[peerIndex]]);
+					console.log(chunk.slice(1,2)[0]);
+					peerChannel[peerConnections[peerIndex]].send(chunk);
+				}
+				catch(e){
+					console.log(e);
+					Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
+				}
+			}
 		}
 	}
 	// peerIndex=(chunkNum+peerIndex+1)%(peerConnections.length);
