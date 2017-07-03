@@ -21,10 +21,10 @@ var peerConnection = [];
 var peerConnections = [];
 var peerIDServer;
 var peerChannel = [];
-var peerIndex = 0; // The index of array peerConnections
 var maxQueueSize = 1024; // Considering max peers are 256 and having a safe buffer of 4 chunks/peer before any element in the queue is been replaced
 var queue = new Array(maxQueueSize);
 var chunkToPlay = 0;
+var peerIndex = 0; // The index of array peerConnections
 
 console.log(peerID);
 
@@ -294,7 +294,7 @@ function onFragment(_) {
 		                console.log(bytesAppended);
 		                console.log(durationInSeconds);
 		                chunkEndTime[updateCount] = bytesAppended*(durationInSeconds/videoFile.size)
-		                console.log(chunkEndTime);
+		                // console.log(chunkEndTime);
 		                if(updateCount == 0){
     		                vid.play();
     		            };
@@ -304,7 +304,7 @@ function onFragment(_) {
 		            }
 	            }
     	        catch(e){
-    	        	console.log(e.name);
+    	        	console.log(e);
     	        	if (e.name == "QuotaExceededError"){
     	        		console.log("clean buffer");
     	        		// var prevChunkEndTime = Math.max.apply(Math, chunkEndTime.filter(function(x){return x <= vid.currentTime}));
@@ -354,11 +354,11 @@ function onFragment(_) {
             mp4box.onSegment = function (id, user, buffer, sampleNum) {
                 console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength+",sampleNum="+sampleNum);
                 console.log("user.segmentIndex:"+user.segmentIndex);
-                var numChunks = Math.ceil(buffer.byteLength/16384); //16384 bytes = 16kb
+                var numChunks = Math.ceil(buffer.byteLength/16380); //16384 bytes = 16kb
                 var currentByte = 0
                 for(currentChunk = 0; currentChunk < numChunks; currentChunk++){
-                    outBuffer[user.segmentIndex] = buffer.slice(currentByte, currentByte+16384);
-                    currentByte+=16384;
+                    outBuffer[user.segmentIndex] = buffer.slice(currentByte, currentByte+16380);
+                    currentByte+=16380;
                     //user.appendBuffer(outBuffer[user.segmentIndex]); 
                     user.segmentIndex++;
                 }
@@ -494,6 +494,7 @@ function gotMessageFromServer(message) {
 	peerConnection[currentPeer].ondatachannel = function (event) {
 		console.log("on data channel");
 		peerConnections.push(currentPeer);
+		console.log(peerConnections);
 		peerChannel[currentPeer] = event.channel;
 		setupChannel(currentPeer);
 	};
@@ -514,11 +515,11 @@ function cleanBuffer(chunkStart, chunkEnd){
 }
 
 function createDataChannel(currentPeer, callback){
-	console.log("creating");
+	console.log("creating data channel");
 	dataChannelOptions = {
 		'id': currentPeer
-	}
-	peerChannel[currentPeer] = peerConnection[currentPeer].createDataChannel("Channel"+currentPeer, dataChannelOptions)
+	};
+	peerChannel[currentPeer] = peerConnection[currentPeer].createDataChannel("Channel"+currentPeer, dataChannelOptions);
 	callback(currentPeer); // callback is always setupChannel
 }
 
@@ -526,40 +527,55 @@ function createDataChannel(currentPeer, callback){
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
 function sendChunk(chunk){
+	console.log("hey");
 	console.log(chunk);
-	console.log(chunk.slice(0,1));
 	var senderID = chunk.slice(0,1)[0];
+	console.log(senderID);
 	var chunkNum = chunk.slice(1,2)[0];
+	console.log(chunkNum);
 	var streamSend = chunk.slice(2);
+	console.log(peerConnections);
 
-	peerIndex=(chunkNum+peerIndex)%(peerConnections.length+2); // Since the two peers, the host and the peer itself were removed from the peer list
+	peerIndex=(chunkNum+peerIndex)%(peerConnections.length); // Since the the peer itself were removed from the peer list
 	console.log(peerIndex);
+	if(peerConnections[peerIndex] == 0){
+		console.log("peer is host");
+		peerIndex+=(chunkNum+peerIndex+1)%(peerConnections.length+1); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+	}
 	console.log(peerConnections[peerIndex]);
 	if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
-
+		console.log("trying to send chunk");
 		try{
+			console.log(peerChannel);
+			console.log(peerChannel[peerConnections[peerIndex]]);
+			console.log(chunk.slice(1,2)[0]);
 			peerChannel[peerConnections[peerIndex]].send(chunk);
 		}
 		catch(e){
+			console.log(e);
 			Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
 		}
 	}
+	// peerIndex=(chunkNum+peerIndex+1)%(peerConnections.length);
 }
 
 // function only used by the host peer
 function readyChunk(chunk, updateCount){
 		var stream = chunk;
 		var senderID = new Uint8Array(1);
-		var chunkNum = new Uint8Array(1);
+		var chunkNum = new Uint16Array(1);
 		var chunkBuffer = new Uint8Array(stream);
 		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
 
 		senderID[0] = peerIDServer;
+		console.log(updateCount);
 		chunkNum[0] = updateCount;
+		console.log(chunkNum);
 
-		streamMessage.set(senderID);
-		streamMessage.set(chunkNum);
-		streamMessage.set(chunkBuffer);
+		streamMessage.set(senderID, 0);
+		streamMessage.set(chunkNum, 1);
+		console.log(streamMessage.slice(1,2)[0])
+		streamMessage.set(chunkBuffer, 2);
 		console.log(streamMessage);
 
 		sendChunk(streamMessage);	
@@ -567,7 +583,7 @@ function readyChunk(chunk, updateCount){
 
 // setting up channel to transmit data betweeen the peers
 function setupChannel(currentPeer){
-
+	console.log("setup data channel");
 	peerChannel[currentPeer].onopen = function(event){
 		console.log(currentPeer);
 		console.log(peerChannel[currentPeer]);
@@ -578,20 +594,21 @@ function setupChannel(currentPeer){
 	peerChannel[currentPeer].onmessage = function (event) {
 		var streamReceived = event.data;
 		console.log(streamReceived);
-		var streamSender = new Uint8Array(streamReceived.slice(0,1)[0]);
+		var streamSender = new Uint8Array(streamReceived.slice(0,1))[0];
 		console.log(streamSender);
-		var chunkNum = new Uint8Array(streamReceived.slice(1,2)[0]);
-		var chunkBuffer = streamReceived.slice(2);
+		var chunkNum = new Uint8Array(streamReceived.slice(1,2))[0];
+		var chunkBuffer = new Uint8Array(streamReceived.slice(2));
 		console.log(chunkBuffer.byteLength);
-		console.log(streamReceived.slice(1,2)[0]);
+		console.log(chunkNum);
+		var senderID = new Uint8Array(peerIDServer);
 
 		gotChunk(chunkBuffer ,chunkNum);
 
 		var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
 
-		newStreamMessage.set(senderID);
-		newStreamMessage.set(chunkNum);
-		newStreamMessage.set(chunkBuffer);
+		newStreamMessage.set(senderID, 0);
+		newStreamMessage.set(chunkNum, 1);
+		newStreamMessage.set(chunkBuffer, 2);
 
 		sendChunk(newStreamMessage);
 	}
