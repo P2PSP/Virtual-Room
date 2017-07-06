@@ -12,7 +12,7 @@ var serverConfig = {iceServers: [{ url: 'stun:stun.l.google.com:19302' }]};
 var peersInRoom = [];
 var peerNum = document.getElementById("peer-num").innerText;
 var senderID;
-var mimeCodec = 'video/mp4; codecs="avc1.4d0020"';;
+var mimeCodec = 'video/mp4; codecs="avc1.4D4029"';
 var outBuffer = new Array(); 
 var sourceBuffer = null;
 var chunkSize = 16*1024; // 16kb
@@ -25,6 +25,7 @@ var maxQueueSize = 1024; // Considering max peers are 256 and having a safe buff
 var queue = new Array(maxQueueSize);
 var chunkToPlay = 0;
 var peerIndex = 0; // The index of array peerConnections
+var mp4box;
 
 console.log(peerID);
 
@@ -47,6 +48,7 @@ var currentPeer;
 
 window.onload = function(){
 	console.log("window loaded");
+	mp4box = new MP4Box();
 // 	history.replaceState('', '', baseURL + peerID);
 // 	generateURL();
 // 	preInititiation();
@@ -165,6 +167,7 @@ function widthChange(width){
 }
 
 vidFile.onchange = function(){
+		console.log("video stream change");
 		var streambtn = document.getElementById("stream");
 		vid.setAttribute("controls", "");
 	    streambtn.setAttribute("class", "btn-flat waves-effect waves-light red");
@@ -230,19 +233,17 @@ if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)){
 
 function fragmentMP4(){
 	// Need to be specific for Blink regarding codecs
-	mimeCodec = 'video/mp4; codecs="avc1.4d0020"';
 	if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
 	    //create an URL (from mediaSource OBJ) as video's source
 	    vid.src = URL.createObjectURL(mediaSource);
 	    mediaSource.addEventListener('sourceopen', setSourceBuffer);
 	}else{
-    console.error('Unsupported MIME type or codec: ', mimeCodec);
+    	console.error('Unsupported MIME type or codec: ', mimeCodec);
 	}
 
 	onFragment();
 }
 
-mimeCodec = 'video/mp4; codecs="avc1.4d0020"';
 if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
     //create an URL (from mediaSource OBJ) as video's source
     vid.src = URL.createObjectURL(mediaSource);
@@ -252,6 +253,10 @@ if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
 }
 
 function setSourceBuffer(){
+	console.log("source open");
+	if(peerID!=senderID){
+		mimeCodec = 'video/mp4; codecs="avc1.4D4029"'
+	}
     sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
     sourceBuffer.segmentIndex = 0;
     sourceBuffer.AppendMode = "sequence";
@@ -298,7 +303,7 @@ function onFragment(_) {
 		                if(updateCount == 0){
     		                vid.play();
     		            };
-		                readyChunk(chunk, updateCount); // send chunk to data channel to transmit to other peers
+		                readyChunk(chunk, updateCount+1); // send chunk to data channel to transmit to other peers
 		                updateCount++;
 		                // console.log("video played");
 		            }
@@ -329,7 +334,7 @@ function onFragment(_) {
 		                console.log(outBuffer[updateCount]);
 		                sourceBuffer.appendBuffer(outBuffer[updateCount]);
 		                var chunk = outBuffer[updateCount];
-		                readyChunk(chunk, updateCount); // send chunk to data channel to transmit to other peers
+		                readyChunk(chunk, updateCount+1); // send chunk to data channel to transmit to other peers
 		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                chunkEndTime[updateCount] = Math.ceil(bytesAppended*(videoFile.size/durationInSeconds))
 		                updateCount++;
@@ -351,6 +356,7 @@ function onFragment(_) {
         	// calculating duration in seconds according to the timescale of the video
         	durationInSeconds = info.duration/info.timescale;
             console.log("5.info.mime:"+info.mime);
+            console.log(info.codecs);
             mp4box.onSegment = function (id, user, buffer, sampleNum) {
                 console.log("Received segment on track "+id+" for object "+user+" with a length of "+buffer.byteLength+",sampleNum="+sampleNum);
                 console.log("user.segmentIndex:"+user.segmentIndex);
@@ -389,6 +395,7 @@ function onFragment(_) {
         console.log("7.source buffer appendBuffer start:"); 
         console.log(initializeSegments[0].buffer);
         sourceBuffer.appendBuffer(initializeSegments[0].buffer); 
+        readyChunk(initializeSegments[0].buffer, 0);
     };
     console.log("1.on send"); 
 }
@@ -527,7 +534,6 @@ function createDataChannel(currentPeer, callback){
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
 function sendChunk(chunk){
-	console.log("hey");
 	console.log(chunk);
 	var senderID = chunk.slice(0,1)[0];
 	console.log(senderID);
@@ -587,7 +593,7 @@ function readyChunk(chunk, updateCount){
 		senderID[0] = peerIDServer;
 		console.log(updateCount);
 		chunkNum[0] = updateCount;
-		console.log(chunkNum);
+		console.log(senderID);
 
 		streamMessage.set(senderID, 0);
 		streamMessage.set(chunkNum, 1);
@@ -617,17 +623,22 @@ function setupChannel(currentPeer){
 		var chunkBuffer = new Uint8Array(streamReceived.slice(2));
 		console.log(chunkBuffer.byteLength);
 		console.log(chunkNum);
-		var senderID = new Uint8Array(peerIDServer);
+		var senderID = new Uint8Array(1);
+		senderID[0] = peerIDServer;
+		console.log(peerIDServer);
 
 		gotChunk(chunkBuffer ,chunkNum);
+		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
 
-		var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
+		// console.log(senderID.byteLength);
+		// newStreamMessage.set(chunkNum, 0);
+		// console.log(1);
+		// newStreamMessage.set(chunkNum, 1);
+		// console.log(2);
+		// newStreamMessage.set(chunkBuffer, 2);
+		// console.log(3);
 
-		newStreamMessage.set(senderID, 0);
-		newStreamMessage.set(chunkNum, 1);
-		newStreamMessage.set(chunkBuffer, 2);
-
-		sendChunk(newStreamMessage);
+		// sendChunk(newStreamMessage);
 	}
 };
 
@@ -640,16 +651,25 @@ function gotChunk(chunk, chunkNum){
 
 function appendChunk(queue){
 	if (queue[chunkToPlay]!=null){
-		if(!sourceBuffer.updating){
-			var chunkAppend = new Uint8Array(queue[chunkToPlay])
-			console.log(chunkAppend);
-			console.log(sourceBuffer);
-			sourceBuffer.appendBuffer(chunkAppend);
-			vid.play();
-			chunkToPlay = (chunkToPlay+1)%maxQueueSize;
-		}
-		else{
-			Materialize.toast("Buffering! Waiting for chunk to arrive");
-		}
+		console.log("trying to play");
+		// sourceBuffer.addEventListener('updateend', function (){
+			console.log("enter source event");
+			if(!sourceBuffer.updating){
+				var chunkAppend = new Uint8Array(queue[chunkToPlay])
+				console.log(chunkAppend);
+				console.log(sourceBuffer);
+				sourceBuffer.appendBuffer(chunkAppend);
+				vid.play();
+				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
+				console.log(sourceBuffer);
+			}
+		// });
+	}else{
+		Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
 	}
 }
+
+
+// all the chunks are being transferred. look at these points with open mind - 
+// 1. SourceBuffer bug - Failed to execute 'appendBuffer' on 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
+// only for the other peer connections
