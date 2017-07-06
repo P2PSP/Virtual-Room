@@ -49,6 +49,9 @@ var currentPeer;
 window.onload = function(){
 	console.log("window loaded");
 	mp4box = new MP4Box();
+    vid.addEventListener('canplay', function () {
+            vid.play();
+    });
 // 	history.replaceState('', '', baseURL + peerID);
 // 	generateURL();
 // 	preInititiation();
@@ -338,13 +341,11 @@ function onFragment(_) {
 		                bytesAppended+=outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                chunkEndTime[updateCount] = Math.ceil(bytesAppended*(videoFile.size/durationInSeconds))
 		                updateCount++;
-		                vid.play();
 		                // console.log("video played");
 		            }
 	            }
             }else{
                 console.log("9.start play");
-                vid.play();
             }
         });
         mp4box.onMoovStart = function () {
@@ -586,9 +587,9 @@ function sendChunk(chunk){
 function readyChunk(chunk, updateCount){
 		var stream = chunk;
 		var senderID = new Uint8Array(1);
-		var chunkNum = new Uint16Array(1);
+		var chunkNum = new Uint8Array(1);
 		var chunkBuffer = new Uint8Array(stream);
-		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
+		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
 		senderID[0] = peerIDServer;
 		console.log(updateCount);
@@ -627,15 +628,16 @@ function setupChannel(currentPeer){
 		senderID[0] = peerIDServer;
 		console.log(peerIDServer);
 
+		readyChunk(chunkBuffer, chunkNum);
 		gotChunk(chunkBuffer ,chunkNum);
-		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.length + senderID.length);
+		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
 		// console.log(senderID.byteLength);
-		// newStreamMessage.set(chunkNum, 0);
+		// newStreamMessage.set(senderID);
 		// console.log(1);
-		// newStreamMessage.set(chunkNum, 1);
+		// newStreamMessage.set(chunkNum);
 		// console.log(2);
-		// newStreamMessage.set(chunkBuffer, 2);
+		// newStreamMessage.set(chunkBuffer);
 		// console.log(3);
 
 		// sendChunk(newStreamMessage);
@@ -645,6 +647,9 @@ function setupChannel(currentPeer){
 // function to be called when data channel receives the chunk
 function gotChunk(chunk, chunkNum){
 	queue[chunkNum%maxQueueSize] = chunk;
+	if(chunkNum == 0){
+		vid.setAttribute("controls", "");
+	}
 	console.log(queue);
 	appendChunk(queue);
 }
@@ -652,24 +657,16 @@ function gotChunk(chunk, chunkNum){
 function appendChunk(queue){
 	if (queue[chunkToPlay]!=null){
 		console.log("trying to play");
-		// sourceBuffer.addEventListener('updateend', function (){
 			console.log("enter source event");
 			if(!sourceBuffer.updating){
 				var chunkAppend = new Uint8Array(queue[chunkToPlay])
 				console.log(chunkAppend);
 				console.log(sourceBuffer);
 				sourceBuffer.appendBuffer(chunkAppend);
-				vid.play();
 				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
 				console.log(sourceBuffer);
 			}
-		// });
 	}else{
 		Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
 	}
 }
-
-
-// all the chunks are being transferred. look at these points with open mind - 
-// 1. SourceBuffer bug - Failed to execute 'appendBuffer' on 'SourceBuffer': This SourceBuffer has been removed from the parent media source.
-// only for the other peer connections
