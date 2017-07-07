@@ -1,4 +1,5 @@
 <!-- The landing page of Virtual room -->
+{% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
 <header>
@@ -8,8 +9,8 @@
 
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-  <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="{% static 'css/materialize.min.css' %}" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="{% static 'css/style.css' %}" type="text/css" rel="stylesheet" media="screen,projection"/>
 </header>
 <main>
   <div class="container col s12 add-height">
@@ -22,7 +23,7 @@
         <h5 class="header col s12 light">A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time.</h5>
       </div>
       <div class="row center">
-        <a href="room.html" id="enter-room" class="btn-large waves-effect waves-light red">Make a virtual room</a>
+        <a href="http://127.0.0.1:3000/room/new/" id="enter-room" class="btn-large waves-effect waves-light red">Make a virtual room</a>
       </div>
       <br><br>
 
@@ -71,7 +72,7 @@
 
   <!--  Scripts-->
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-  <script src="../js/materialize.min.js"></script>
-  <script src="../js/init.js"></script>
+  <script src="{% static 'js/materialize.min.js' %}"></script>
+  <script src="{% static 'js/init.js' %}"></script>
 
 </html>

@@ -1,4 +1,5 @@
 <!-- The virtual room page of Virtual room -->
+{% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +9,8 @@
 
   <!-- CSS  -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-  <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="{% static 'css/materialize.min.css' %}" type="text/css" rel="stylesheet" media="screen,projection"/>
+  <link href="{% static 'css/style.css' %}" type="text/css" rel="stylesheet" media="screen,projection"/>
 </head>
 <main>
   <nav class="grey darken-4 lighten-1" role="navigation">
@@ -85,8 +86,8 @@
 
   <!--  Scripts-->
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-  <script src="../js/materialize.min.js"></script>
-  <script src="../js/init.js"></script>
-  <script src="../js/room.js"></script>
-  <script src="../js/mp4box.all.js"></script>
+  <script src="{% static 'js/materialize.min.js' %}"></script>
+  <script src="{% static 'js/init.js' %}"></script>
+  <script src="{% static 'js/room.js' %}"></script>
+  <script src="{% static 'js/mp4box.all.js' %}"></script>
 </html>
