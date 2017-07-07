@@ -4,13 +4,14 @@ var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
 var baseURL = "http://127.0.0.1:3000/room/new/"; // Will be changed accordingly
+var homeURL = "http://127.0.0.1:3000/room/welcome/";
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
 var videoLoaded;
 var serverConfig = {iceServers: [{ url: 'stun:stun.l.google.com:19302' }]};
 var peersInRoom = [];
-var peerNum = document.getElementById("peer-num").innerText;
+var peerNum = document.getElementById("peer-num");
 var senderID;
 var mimeCodec = 'video/mp4; codecs="avc1.4D4029"';
 var outBuffer = new Array(); 
@@ -201,7 +202,7 @@ function generateURL(){
 
 // disconnect the peer from the room
 function disconnectPeer(){
-
+	window.location.href = homeURL;
 }
 
 // Updating the number of peers and getting stream from the peer on connecting to other peers
@@ -439,9 +440,17 @@ function initiatePeerConnection(currentPeer, callback){
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
-		console.log("negotiation initiated");
-		peerConnection[currentPeer].createOffer().then(function(offer){
-			createLocalDescription(offer);
+		console.log("negotiation initiated"+currentPeer.toString());
+		peerConnection[currentPeer].createOffer()
+		.then(function(offer){
+			peerConnection[currentPeer].setLocalDescription(offer)
+		})
+		.then(function(){
+			console.log("offer sent to "+currentPeer.toString());
+			console.log(peerID);
+			console.log(peerConnection[currentPeer].localDescription);
+			signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
+			console.log("Done");
 		})
 		.catch(logError)
 	};
@@ -459,9 +468,11 @@ function sendOffer(){
 function createLocalDescription(offer){
 	peerConnection[currentPeer].setLocalDescription(offer)
 	.then(function(){
-		console.log("offer sent");
+		console.log("offer sent to "+currentPeer.toString());
 		console.log(peerID);
+		console.log(peerConnection[currentPeer].localDescription);
 		signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
+		console.log("Done");
 	})
 	// sendOffer();
 }
@@ -529,6 +540,7 @@ function createDataChannel(currentPeer, callback){
 	};
 	peerChannel[currentPeer] = peerConnection[currentPeer].createDataChannel("Channel"+currentPeer, dataChannelOptions);
 	callback(currentPeer); // callback is always setupChannel
+	console.log(peerChannel[currentPeer]);
 }
 
 
@@ -613,6 +625,10 @@ function setupChannel(currentPeer){
 		console.log(peerChannel[currentPeer]);
 		// peerConnections.push(currentPeer); // updating the peer list
 		console.log(peerConnections);
+		console.log(peerNum.innerText);
+		var peerNumUpdated = 1+peerConnections.length;
+		peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
+		console.log(peerNum.innerText);
 	};
 
 	peerChannel[currentPeer].onmessage = function (event) {
