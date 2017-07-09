@@ -27,6 +27,8 @@ var queue = new Array(maxQueueSize);
 var chunkToPlay = 0;
 var peerIndex = 0; // The index of array peerConnections
 var mp4box;
+var constraints = {'video': true, 'audio': true}; // Have to play with audio constraints, since the peer should not be able to hear hi own voice, but the peers should receive user audio
+var localStream; // The stream getting through getUserMedia for video calling
 
 console.log(peerID);
 
@@ -35,6 +37,9 @@ if (window.location.href.length - peerID.length == baseURL.length){
 	var windowLocation = window.location.href;
 	senderID = windowLocation.replace(baseURL, "");
 	console.log(senderID);
+	vidFile.disabled = true;
+	var streambtn = document.getElementById("stream");
+	streambtn.disabled = true;
 }else{
 	history.replaceState('', '', baseURL + peerID);
 	console.log("peer is sender");
@@ -412,6 +417,7 @@ function preInititiation(){
 	signalServer.binaryType = "arraybuffer";
 	// setTimeout(function(){
 	// signalServer.onopen = function(){
+	navigator.getUserMedia(constraints, gotLocalStream, logError);
 		if (peerID != senderID){
 			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
 			// addPeer();    // Will resume this function while on the feature of video calling
@@ -685,4 +691,21 @@ function appendChunk(queue){
 	}else{
 		Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
 	}
+}
+
+function gotLocalStream(stream){
+	localStream = stream;
+	// Adding the self video element
+	var peerMediaElements = document.getElementById("peer-media-banner");
+	var peerMediaDiv = document.createElement("div");
+	var peerMediaVideo = document.createElement("video");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	var peerMediaSource = document.createElement("source");
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaSource.src = URL.createObjectURL(localStream); // to be updated with UserMedia
+	peerMediaSource.id = "user-media-"+peerID;
+	peerMediaVideo.appendChild(peerMediaSource);
+	peerMediaDiv.setAttribute("class", "col s4");
+	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
 }
