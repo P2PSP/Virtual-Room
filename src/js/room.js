@@ -29,6 +29,7 @@ var peerIndex = 0; // The index of array peerConnections
 var mp4box;
 var constraints = {'video': true, 'audio': true}; // Have to play with audio constraints, since the peer should not be able to hear hi own voice, but the peers should receive user audio
 var localStream; // The stream getting through getUserMedia for video calling
+var peerIDList = [];
 
 console.log(peerID);
 
@@ -114,17 +115,24 @@ function handleMessage(message){
 
 	// Initiating multiple connections with peer for new peer 
 	if (parsedMessage.peer_id_list){
-		var tempPeerList = parsedMessage.peer_id_list;
-		console.log(tempPeerList);
+
+		navigator.getUserMedia(constraints, function(stream){
+			localStream = stream;
+			console.log(localStream);
+			gotLocalStream(localStream);
+		}, logError);
+
+		peerIDList = parsedMessage.peer_id_list;
+		console.log(peerIDList);
 		var currentPeerNum; // defining the peerConnection index
-		peerIDServer = tempPeerList.pop(); // an array containing peer ids excluding that of the receiving peer 
-		console.log(tempPeerList);
+		peerIDServer = peerIDList.pop(); // an array containing peer ids excluding that of the receiving peer 
+		console.log(peerIDList);
 		if (peerIDServer==0){
 			console.log("The host peer");
 		}else{
-			console.log(tempPeerList);
-			// tempPeerList.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
-			peerConnections = tempPeerList; // peer ID list on initiating the rtc connection by a new peer
+			console.log(peerIDList);
+			// peerIDList.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
+			peerConnections = peerIDList; // peer ID list on initiating the rtc connection by a new peer
 			console.log(peerConnections);
 			for (currentPeerNum = 0; currentPeerNum<peerConnections.length; currentPeerNum++){
 					currentPeer = peerConnections[currentPeerNum]
@@ -417,7 +425,6 @@ function preInititiation(){
 	signalServer.binaryType = "arraybuffer";
 	// setTimeout(function(){
 	// signalServer.onopen = function(){
-	navigator.getUserMedia(constraints, gotLocalStream, logError);
 		if (peerID != senderID){
 			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
 			// addPeer();    // Will resume this function while on the feature of video calling
@@ -460,6 +467,9 @@ function initiatePeerConnection(currentPeer, callback){
 		})
 		.catch(logError)
 	};
+	// console.log(localStream);
+	// peerConnection[currentPeer].addStream(localStream);
+	// peerConnection[currentPeer].onaddstream = gotRemoteStream;
 	callback(currentPeer, setupChannel); // callback is createDataChannel. calling the callback with setupChannel
 }
 
@@ -515,8 +525,25 @@ function gotMessageFromServer(message) {
     	console.log("added");
     }
 
+
     // setupDataChannel(currentPeer);
 	peerConnection[currentPeer].ondatachannel = function (event) {
+		// window.localStream.getTracks().forEach(
+		// 	function(track) {
+		// 		console.log(track);
+			peerConnection[currentPeer].addStream(window.localStream);
+				// peerConnection[currentPeer].addTrack(
+				// 	track,
+				// 	window.localStream
+				// );
+			// }
+		// );
+	    console.log(peerConnection[currentPeer]);
+		peerConnection[currentPeer].ontrack = function(e){
+			console.log("on track");
+			gotRemoteStream(e);
+		};
+
 		console.log("on data channel");
 		peerConnections.push(currentPeer);
 		console.log(peerConnections);
@@ -693,8 +720,9 @@ function appendChunk(queue){
 	}
 }
 
-function gotLocalStream(stream){
-	localStream = stream;
+function gotLocalStream(localStream){
+	console.log(localStream);
+	window.localStream = localStream
 	// Adding the self video element
 	var peerMediaElements = document.getElementById("peer-media-banner");
 	var peerMediaDiv = document.createElement("div");
@@ -702,7 +730,43 @@ function gotLocalStream(stream){
 	peerMediaVideo.setAttribute("class", "z-depth-5");
 	var peerMediaSource = document.createElement("source");
 	peerMediaVideo.setAttribute("height", "150");
-	peerMediaSource.src = URL.createObjectURL(localStream); // to be updated with UserMedia
+	peerMediaSource.src = URL.createObjectURL(window.localStream);
+	peerMediaSource.id = "user-media-"+peerID;
+	peerMediaVideo.appendChild(peerMediaSource);
+	peerMediaDiv.setAttribute("class", "col s4");
+	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
+
+	console.log(peerIDList);
+	peerIDList.map(function(currentPeer){
+
+		// window.localStream.getTracks().forEach(
+		// 	function(track) {
+		// 		console.log("adding stream to "+currentPeer);
+		// 		peerConnection[currentPeer].addTrack(
+		// 			track,
+		// 			window.localStream
+		// 		);
+		// 	}
+			peerConnection[currentPeer].addStream(window.localStream);
+		// );
+		peerConnection[currentPeer].ontrack = function(e){
+			console.log("on track");
+			gotRemoteStream(e);
+		};
+	});
+
+}
+
+function gotRemoteStream(event){
+	console.log(event);
+	var peerMediaElements = document.getElementById("peer-media-banner");
+	var peerMediaDiv = document.createElement("div");
+	var peerMediaVideo = document.createElement("video");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	var peerMediaSource = document.createElement("source");
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaSource.src = URL.createObjectURL(event.streams[0]);
 	peerMediaSource.id = "user-media-"+peerID;
 	peerMediaVideo.appendChild(peerMediaSource);
 	peerMediaDiv.setAttribute("class", "col s4");
