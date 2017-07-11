@@ -648,9 +648,6 @@ function readyChunk(chunk, updateCount){
 
 		senderID[0] = peerIDServer;
 		console.log(updateCount);
-		if(updateCount!=0 && updateCount%256==0){
-			bufferCounter=1;
-		}
 		chunkNum[0] = updateCount+bufferCounter;
 		chunkNum[1] = updateCount+bufferCounter>>8;
 		console.log(senderID);
@@ -682,7 +679,6 @@ function setupChannel(currentPeer){
 	peerChannel[currentPeer].onmessage = function (event) {
 		console.log("message received");
 		if(typeof event.data == "string"){
-			console.log("heyeheyeheyehe");
 			var message = JSON.parse(event.data);
 			console.log(message);
 			if (message.event == "pause"){
@@ -700,7 +696,7 @@ function setupChannel(currentPeer){
 		var streamSender = new Uint8Array(streamReceived.slice(0,1))[0];
 		console.log(streamSender);
 		var chunkNum = new Uint16Array(streamReceived.slice(1,3));
-		var chunkBuffer = new Uint8Array(streamReceived.slice(2));
+		var chunkBuffer = new Uint8Array(streamReceived.slice(3));
 		console.log(chunkBuffer.byteLength);
 		console.log(chunkNum);
 		var senderID = new Uint8Array(1);
@@ -746,6 +742,7 @@ function appendChunk(queue){
 			}
 	}else{
 		// Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
+		console.log(queue[chunkToPlay]);
 		console.log("%cchunkNum->"+chunkToPlay, "color:#04B431");
 		$("#video-stream").LoadingOverlay("show");
 		vid.pause();
