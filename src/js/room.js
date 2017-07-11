@@ -22,7 +22,7 @@ var peerConnection = [];
 var peerConnections = [];
 var peerIDServer;
 var peerChannel = [];
-var maxQueueSize = 1024; // Considering max peers are 256 and having a safe buffer of 4 chunks/peer before any element in the queue is been replaced
+var maxQueueSize = 512; // Considering max peers are 256 and having a safe buffer of 4 chunks/peer before any element in the queue is been replaced
 var queue = new Array(maxQueueSize);
 var chunkToPlay = 0;
 var peerIndex = 0; // The index of array peerConnections
@@ -282,12 +282,12 @@ function setSourceBuffer(){
 	if(peerID!=senderID){
 		mimeCodec = 'video/mp4; codecs="avc1.4D4029"'
 	}
-	if(!mediaSource.sourceBuffer){
+	// if(sourceBuffer==null){
 	    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
 	    sourceBuffer.segmentIndex = 0;
 	    sourceBuffer.AppendMode = "sequence";
 	    sourceBuffer.mode = "sequence";
-	}
+	// }
 
 }
 
@@ -642,24 +642,27 @@ function readyChunk(chunk, updateCount){
 		var stream = chunk;
 		var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
 		var senderID = new Uint8Array(1);
-		var chunkNum = new Uint8Array(1);
+		var chunkNum = new Uint8Array(2);
 		var chunkBuffer = new Uint8Array(stream);
 		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
 		senderID[0] = peerIDServer;
 		console.log(updateCount);
-		if(updateCount!=0 && updateCount%255==0){
+		if(updateCount!=0 && updateCount%256==0){
 			bufferCounter=1;
 		}
 		chunkNum[0] = updateCount+bufferCounter;
+		chunkNum[1] = updateCount+bufferCounter>>8;
 		console.log(senderID);
 
 		streamMessage.set(senderID, 0);
 		streamMessage.set(chunkNum, 1);
-		console.log(streamMessage.slice(1,2)[0])
-		streamMessage.set(chunkBuffer, 2);
+		console.log(streamMessage.slice(1,3)[0])
+		streamMessage.set(chunkBuffer, 3);
 
-		sendChunk(streamMessage);	
+		if(peerConnections.length>0){
+			sendChunk(streamMessage);
+		}	
 }
 
 // setting up channel to transmit data betweeen the peers
@@ -696,16 +699,16 @@ function setupChannel(currentPeer){
 		console.log(streamReceived);
 		var streamSender = new Uint8Array(streamReceived.slice(0,1))[0];
 		console.log(streamSender);
-		var chunkNum = new Uint8Array(streamReceived.slice(1,2))[0];
+		var chunkNum = new Uint16Array(streamReceived.slice(1,3));
 		var chunkBuffer = new Uint8Array(streamReceived.slice(2));
 		console.log(chunkBuffer.byteLength);
 		console.log(chunkNum);
 		var senderID = new Uint8Array(1);
 		senderID[0] = peerIDServer;
 		console.log(peerIDServer);
-
-		readyChunk(chunkBuffer, chunkNum);
-		gotChunk(chunkBuffer ,chunkNum);
+		console.log(chunkNum[0]);
+		readyChunk(chunkBuffer, chunkNum[0]);
+		gotChunk(chunkBuffer ,chunkNum[0]);
 		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
 		// console.log(senderID.byteLength);
