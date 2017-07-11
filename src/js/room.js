@@ -29,7 +29,6 @@ var peerIndex = 0; // The index of array peerConnections
 var mp4box;
 var constraints = {'video': true, 'audio': true}; // Have to play with audio constraints, since the peer should not be able to hear hi own voice, but the peers should receive user audio
 var localStream; // The stream getting through getUserMedia for video calling
-var peerIDList = [];
 
 console.log(peerID);
 
@@ -59,6 +58,15 @@ window.onload = function(){
     vid.addEventListener('canplay', function () {
             vid.play();
     });
+    vid.onpause = function(){
+    	var event = "pause";
+    	vidPlayBack(event);
+    }
+
+    vid.onplay = function(){
+    	var event = "play";
+    	vidPlayBack(event);
+    }
 // 	history.replaceState('', '', baseURL + peerID);
 // 	generateURL();
 // 	preInititiation();
@@ -274,10 +282,12 @@ function setSourceBuffer(){
 	if(peerID!=senderID){
 		mimeCodec = 'video/mp4; codecs="avc1.4D4029"'
 	}
-    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-    sourceBuffer.segmentIndex = 0;
-    sourceBuffer.AppendMode = "sequence";
-    sourceBuffer.mode = "sequence";
+	if(!mediaSource.sourceBuffer){
+	    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+	    sourceBuffer.segmentIndex = 0;
+	    sourceBuffer.AppendMode = "sequence";
+	    sourceBuffer.mode = "sequence";
+	}
 
 }
 
@@ -580,7 +590,6 @@ function createDataChannel(currentPeer, callback){
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
 function sendChunk(chunk){
-	console.log(chunk);
 	var senderID = chunk.slice(0,1)[0];
 	console.log(senderID);
 	var chunkNum = chunk.slice(1,2)[0];
@@ -631,6 +640,7 @@ function sendChunk(chunk){
 // function only used by the host peer
 function readyChunk(chunk, updateCount){
 		var stream = chunk;
+		var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
 		var senderID = new Uint8Array(1);
 		var chunkNum = new Uint8Array(1);
 		var chunkBuffer = new Uint8Array(stream);
@@ -638,14 +648,16 @@ function readyChunk(chunk, updateCount){
 
 		senderID[0] = peerIDServer;
 		console.log(updateCount);
-		chunkNum[0] = updateCount;
+		if(updateCount!=0 && updateCount%255==0){
+			bufferCounter=1;
+		}
+		chunkNum[0] = updateCount+bufferCounter;
 		console.log(senderID);
 
 		streamMessage.set(senderID, 0);
 		streamMessage.set(chunkNum, 1);
 		console.log(streamMessage.slice(1,2)[0])
 		streamMessage.set(chunkBuffer, 2);
-		console.log(streamMessage);
 
 		sendChunk(streamMessage);	
 }
@@ -665,6 +677,21 @@ function setupChannel(currentPeer){
 	};
 
 	peerChannel[currentPeer].onmessage = function (event) {
+		console.log("message received");
+		if(typeof event.data == "string"){
+			console.log("heyeheyeheyehe");
+			var message = JSON.parse(event.data);
+			console.log(message);
+			if (message.event == "pause"){
+				vid.pause();
+				Materialize.toast(message.peerID+" paused the video", 2000);
+			}else{
+				vid.play();
+				Materialize.toast(message.peerID+" played the video", 2000);
+			}
+			return;
+		}
+
 		var streamReceived = event.data;
 		console.log(streamReceived);
 		var streamSender = new Uint8Array(streamReceived.slice(0,1))[0];
@@ -699,24 +726,26 @@ function gotChunk(chunk, chunkNum){
 	if(chunkNum == 0){
 		vid.setAttribute("controls", "");
 	}
-	console.log(queue);
+	console.log(chunkNum);
 	appendChunk(queue);
 }
 
 function appendChunk(queue){
+	console.log(chunkToPlay);
 	if (queue[chunkToPlay]!=null){
+		$("#video-stream").LoadingOverlay("hide", true);
 		console.log("trying to play");
-			console.log("enter source event");
 			if(!sourceBuffer.updating){
 				var chunkAppend = new Uint8Array(queue[chunkToPlay])
-				console.log(chunkAppend);
-				console.log(sourceBuffer);
 				sourceBuffer.appendBuffer(chunkAppend);
 				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
-				console.log(sourceBuffer);
+				console.log(chunkToPlay);
 			}
 	}else{
-		Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
+		// Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
+		console.log("%cchunkNum->"+chunkToPlay, "color:#04B431");
+		$("#video-stream").LoadingOverlay("show");
+		vid.pause();
 	}
 }
 
@@ -772,4 +801,10 @@ function gotRemoteStream(event){
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
 	peerMediaElements.appendChild(peerMediaDiv);
+}
+
+function vidPlayBack(event){
+	peerIDList.map(function(currentPeer){
+		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
+	});
 }
