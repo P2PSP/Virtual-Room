@@ -538,6 +538,11 @@ function gotMessageFromServer(message) {
 
     // setupDataChannel(currentPeer);
 	peerConnection[currentPeer].ondatachannel = function (event) {
+		console.log("on data channel");
+		peerConnections.push(currentPeer);
+		console.log(peerConnections);
+		peerChannel[currentPeer] = event.channel;
+		setupChannel(currentPeer);
 		// window.localStream.getTracks().forEach(
 		// 	function(track) {
 		// 		console.log(track);
@@ -554,11 +559,6 @@ function gotMessageFromServer(message) {
 			gotRemoteStream(e);
 		};
 
-		console.log("on data channel");
-		peerConnections.push(currentPeer);
-		console.log(peerConnections);
-		peerChannel[currentPeer] = event.channel;
-		setupChannel(currentPeer);
 	};
 }
 
