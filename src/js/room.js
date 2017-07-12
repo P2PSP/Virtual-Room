@@ -805,6 +805,11 @@ function gotRemoteStream(event){
 
 function vidPlayBack(event){
 	peerIDList.map(function(currentPeer){
-		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
+		try{
+			peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
+		}
+		catch(e){
+			console.log("error -> "+e);
+		}
 	});
 }
