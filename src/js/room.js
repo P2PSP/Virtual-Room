@@ -4,13 +4,14 @@ var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
 var baseURL = "http://127.0.0.1:3000/room/new/"; // Will be changed accordingly
+var homeURL = "http://127.0.0.1:3000/room/welcome/";
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
 var videoLoaded;
 var serverConfig = {iceServers: [{ url: 'stun:stun.l.google.com:19302' }]};
 var peersInRoom = [];
-var peerNum = document.getElementById("peer-num").innerText;
+var peerNum = document.getElementById("peer-num");
 var senderID;
 var mimeCodec = 'video/mp4; codecs="avc1.4D4029"';
 var outBuffer = new Array(); 
@@ -21,11 +22,13 @@ var peerConnection = [];
 var peerConnections = [];
 var peerIDServer;
 var peerChannel = [];
-var maxQueueSize = 1024; // Considering max peers are 256 and having a safe buffer of 4 chunks/peer before any element in the queue is been replaced
+var maxQueueSize = 512; // Considering max peers are 256 and having a safe buffer of 4 chunks/peer before any element in the queue is been replaced
 var queue = new Array(maxQueueSize);
 var chunkToPlay = 0;
 var peerIndex = 0; // The index of array peerConnections
 var mp4box;
+var constraints = {'video': true, 'audio': true}; // Have to play with audio constraints, since the peer should not be able to hear hi own voice, but the peers should receive user audio
+var localStream; // The stream getting through getUserMedia for video calling
 
 console.log(peerID);
 
@@ -34,6 +37,9 @@ if (window.location.href.length - peerID.length == baseURL.length){
 	var windowLocation = window.location.href;
 	senderID = windowLocation.replace(baseURL, "");
 	console.log(senderID);
+	vidFile.disabled = true;
+	var streambtn = document.getElementById("stream");
+	streambtn.disabled = true;
 }else{
 	history.replaceState('', '', baseURL + peerID);
 	console.log("peer is sender");
@@ -52,6 +58,15 @@ window.onload = function(){
     vid.addEventListener('canplay', function () {
             vid.play();
     });
+    vid.onpause = function(){
+    	var event = "pause";
+    	vidPlayBack(event);
+    }
+
+    vid.onplay = function(){
+    	var event = "play";
+    	vidPlayBack(event);
+    }
 // 	history.replaceState('', '', baseURL + peerID);
 // 	generateURL();
 // 	preInititiation();
@@ -108,17 +123,24 @@ function handleMessage(message){
 
 	// Initiating multiple connections with peer for new peer 
 	if (parsedMessage.peer_id_list){
-		var tempPeerList = parsedMessage.peer_id_list;
-		console.log(tempPeerList);
+
+		navigator.getUserMedia(constraints, function(stream){
+			localStream = stream;
+			console.log(localStream);
+			gotLocalStream(localStream);
+		}, logError);
+
+		peerIDList = parsedMessage.peer_id_list;
+		console.log(peerIDList);
 		var currentPeerNum; // defining the peerConnection index
-		peerIDServer = tempPeerList.pop(); // an array containing peer ids excluding that of the receiving peer 
-		console.log(tempPeerList);
+		peerIDServer = peerIDList.pop(); // an array containing peer ids excluding that of the receiving peer 
+		console.log(peerIDList);
 		if (peerIDServer==0){
 			console.log("The host peer");
 		}else{
-			console.log(tempPeerList);
-			// tempPeerList.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
-			peerConnections = tempPeerList; // peer ID list on initiating the rtc connection by a new peer
+			console.log(peerIDList);
+			// peerIDList.shift(); // an array containing peer ids excluding that of the receiving peer and of the host
+			peerConnections = peerIDList; // peer ID list on initiating the rtc connection by a new peer
 			console.log(peerConnections);
 			for (currentPeerNum = 0; currentPeerNum<peerConnections.length; currentPeerNum++){
 					currentPeer = peerConnections[currentPeerNum]
@@ -201,7 +223,7 @@ function generateURL(){
 
 // disconnect the peer from the room
 function disconnectPeer(){
-
+	window.location.href = homeURL;
 }
 
 // Updating the number of peers and getting stream from the peer on connecting to other peers
@@ -260,10 +282,12 @@ function setSourceBuffer(){
 	if(peerID!=senderID){
 		mimeCodec = 'video/mp4; codecs="avc1.4D4029"'
 	}
-    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-    sourceBuffer.segmentIndex = 0;
-    sourceBuffer.AppendMode = "sequence";
-    sourceBuffer.mode = "sequence";
+	// if(sourceBuffer==null){
+	    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+	    sourceBuffer.segmentIndex = 0;
+	    sourceBuffer.AppendMode = "sequence";
+	    sourceBuffer.mode = "sequence";
+	// }
 
 }
 
@@ -439,12 +463,23 @@ function initiatePeerConnection(currentPeer, callback){
 	};
 
 	peerConnection[currentPeer].onnegotiationneeded = function(){
-		console.log("negotiation initiated");
-		peerConnection[currentPeer].createOffer().then(function(offer){
-			createLocalDescription(offer);
+		console.log("negotiation initiated"+currentPeer.toString());
+		peerConnection[currentPeer].createOffer()
+		.then(function(offer){
+			peerConnection[currentPeer].setLocalDescription(offer)
+		})
+		.then(function(){
+			console.log("offer sent to "+currentPeer.toString());
+			console.log(peerID);
+			console.log(peerConnection[currentPeer].localDescription);
+			signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
+			console.log("Done");
 		})
 		.catch(logError)
 	};
+	// console.log(localStream);
+	// peerConnection[currentPeer].addStream(localStream);
+	// peerConnection[currentPeer].onaddstream = gotRemoteStream;
 	callback(currentPeer, setupChannel); // callback is createDataChannel. calling the callback with setupChannel
 }
 
@@ -459,9 +494,11 @@ function sendOffer(){
 function createLocalDescription(offer){
 	peerConnection[currentPeer].setLocalDescription(offer)
 	.then(function(){
-		console.log("offer sent");
+		console.log("offer sent to "+currentPeer.toString());
 		console.log(peerID);
+		console.log(peerConnection[currentPeer].localDescription);
 		signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
+		console.log("Done");
 	})
 	// sendOffer();
 }
@@ -498,6 +535,7 @@ function gotMessageFromServer(message) {
     	console.log("added");
     }
 
+
     // setupDataChannel(currentPeer);
 	peerConnection[currentPeer].ondatachannel = function (event) {
 		console.log("on data channel");
@@ -505,6 +543,22 @@ function gotMessageFromServer(message) {
 		console.log(peerConnections);
 		peerChannel[currentPeer] = event.channel;
 		setupChannel(currentPeer);
+		// window.localStream.getTracks().forEach(
+		// 	function(track) {
+		// 		console.log(track);
+			peerConnection[currentPeer].addStream(window.localStream);
+				// peerConnection[currentPeer].addTrack(
+				// 	track,
+				// 	window.localStream
+				// );
+			// }
+		// );
+	    console.log(peerConnection[currentPeer]);
+		peerConnection[currentPeer].ontrack = function(e){
+			console.log("on track");
+			gotRemoteStream(e);
+		};
+
 	};
 }
 
@@ -529,13 +583,13 @@ function createDataChannel(currentPeer, callback){
 	};
 	peerChannel[currentPeer] = peerConnection[currentPeer].createDataChannel("Channel"+currentPeer, dataChannelOptions);
 	callback(currentPeer); // callback is always setupChannel
+	console.log(peerChannel[currentPeer]);
 }
 
 
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
 function sendChunk(chunk){
-	console.log(chunk);
 	var senderID = chunk.slice(0,1)[0];
 	console.log(senderID);
 	var chunkNum = chunk.slice(1,2)[0];
@@ -586,23 +640,26 @@ function sendChunk(chunk){
 // function only used by the host peer
 function readyChunk(chunk, updateCount){
 		var stream = chunk;
+		var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
 		var senderID = new Uint8Array(1);
-		var chunkNum = new Uint8Array(1);
+		var chunkNum = new Uint8Array(2);
 		var chunkBuffer = new Uint8Array(stream);
 		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
 		senderID[0] = peerIDServer;
 		console.log(updateCount);
-		chunkNum[0] = updateCount;
+		chunkNum[0] = updateCount+bufferCounter;
+		chunkNum[1] = updateCount+bufferCounter>>8;
 		console.log(senderID);
 
 		streamMessage.set(senderID, 0);
 		streamMessage.set(chunkNum, 1);
-		console.log(streamMessage.slice(1,2)[0])
-		streamMessage.set(chunkBuffer, 2);
-		console.log(streamMessage);
+		console.log(streamMessage.slice(1,3)[0])
+		streamMessage.set(chunkBuffer, 3);
 
-		sendChunk(streamMessage);	
+		if(peerConnections.length>0){
+			sendChunk(streamMessage);
+		}	
 }
 
 // setting up channel to transmit data betweeen the peers
@@ -613,23 +670,41 @@ function setupChannel(currentPeer){
 		console.log(peerChannel[currentPeer]);
 		// peerConnections.push(currentPeer); // updating the peer list
 		console.log(peerConnections);
+		console.log(peerNum.innerText);
+		var peerNumUpdated = 1+peerConnections.length;
+		peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
+		console.log(peerNum.innerText);
 	};
 
 	peerChannel[currentPeer].onmessage = function (event) {
+		console.log("message received");
+		if(typeof event.data == "string"){
+			var message = JSON.parse(event.data);
+			console.log(message);
+			if (message.event == "pause"){
+				vid.pause();
+				Materialize.toast(message.peerID+" paused the video", 2000);
+			}else{
+				vid.play();
+				Materialize.toast(message.peerID+" played the video", 2000);
+			}
+			return;
+		}
+
 		var streamReceived = event.data;
 		console.log(streamReceived);
 		var streamSender = new Uint8Array(streamReceived.slice(0,1))[0];
 		console.log(streamSender);
-		var chunkNum = new Uint8Array(streamReceived.slice(1,2))[0];
-		var chunkBuffer = new Uint8Array(streamReceived.slice(2));
+		var chunkNum = new Uint16Array(streamReceived.slice(1,3));
+		var chunkBuffer = new Uint8Array(streamReceived.slice(3));
 		console.log(chunkBuffer.byteLength);
 		console.log(chunkNum);
 		var senderID = new Uint8Array(1);
 		senderID[0] = peerIDServer;
 		console.log(peerIDServer);
-
-		readyChunk(chunkBuffer, chunkNum);
-		gotChunk(chunkBuffer ,chunkNum);
+		console.log(chunkNum[0]);
+		readyChunk(chunkBuffer, chunkNum[0]);
+		gotChunk(chunkBuffer ,chunkNum[0]);
 		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
 		// console.log(senderID.byteLength);
@@ -650,23 +725,91 @@ function gotChunk(chunk, chunkNum){
 	if(chunkNum == 0){
 		vid.setAttribute("controls", "");
 	}
-	console.log(queue);
+	console.log(chunkNum);
 	appendChunk(queue);
 }
 
 function appendChunk(queue){
+	console.log(chunkToPlay);
 	if (queue[chunkToPlay]!=null){
+		$("#video-stream").LoadingOverlay("hide", true);
 		console.log("trying to play");
-			console.log("enter source event");
 			if(!sourceBuffer.updating){
 				var chunkAppend = new Uint8Array(queue[chunkToPlay])
-				console.log(chunkAppend);
-				console.log(sourceBuffer);
 				sourceBuffer.appendBuffer(chunkAppend);
 				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
-				console.log(sourceBuffer);
+				console.log(chunkToPlay);
 			}
 	}else{
-		Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
+		// Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
+		console.log(queue[chunkToPlay]);
+		console.log("%cchunkNum->"+chunkToPlay, "color:#04B431");
+		$("#video-stream").LoadingOverlay("show");
+		vid.pause();
 	}
+}
+
+function gotLocalStream(localStream){
+	console.log(localStream);
+	window.localStream = localStream
+	// Adding the self video element
+	var peerMediaElements = document.getElementById("peer-media-banner");
+	var peerMediaDiv = document.createElement("div");
+	var peerMediaVideo = document.createElement("video");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	var peerMediaSource = document.createElement("source");
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaSource.src = URL.createObjectURL(window.localStream);
+	peerMediaSource.id = "user-media-"+peerID;
+	peerMediaVideo.appendChild(peerMediaSource);
+	peerMediaDiv.setAttribute("class", "col s4");
+	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
+
+	console.log(peerIDList);
+	peerIDList.map(function(currentPeer){
+
+		// window.localStream.getTracks().forEach(
+		// 	function(track) {
+		// 		console.log("adding stream to "+currentPeer);
+		// 		peerConnection[currentPeer].addTrack(
+		// 			track,
+		// 			window.localStream
+		// 		);
+		// 	}
+			peerConnection[currentPeer].addStream(window.localStream);
+		// );
+		peerConnection[currentPeer].ontrack = function(e){
+			console.log("on track");
+			gotRemoteStream(e);
+		};
+	});
+
+}
+
+function gotRemoteStream(event){
+	console.log(event);
+	var peerMediaElements = document.getElementById("peer-media-banner");
+	var peerMediaDiv = document.createElement("div");
+	var peerMediaVideo = document.createElement("video");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	var peerMediaSource = document.createElement("source");
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaSource.src = URL.createObjectURL(event.streams[0]);
+	peerMediaSource.id = "user-media-"+peerID;
+	peerMediaVideo.appendChild(peerMediaSource);
+	peerMediaDiv.setAttribute("class", "col s4");
+	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
+}
+
+function vidPlayBack(event){
+	peerIDList.map(function(currentPeer){
+		try{
+			peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
+		}
+		catch(e){
+			console.log("error -> "+e);
+		}
+	});
 }
