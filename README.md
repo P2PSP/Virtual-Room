@@ -26,7 +26,7 @@ http://127.0.0.1:3000/room/welcome
 ```
 
 # Acknowledgment
-This work is supported by Google Summer of Code 2017 initiative. See it on [GSoC Webpage](https://summerofcode.withgoogle.com/projects/#6720883738542080)
-Virtual-Room is based on an original idea and several experiments from P2PSP organization which can be found at [WebRTC P2PSP repository](https://github.com/P2PSP/WebRTC) and [P2PSP WebRTC experiments](https://github.com/cristobalmedinalopez/p2psp-webrtc-experiments)
+This work is supported by Google Summer of Code 2017 initiative. See it on [GSoC Webpage](https://summerofcode.withgoogle.com/projects/#6720883738542080)  
+Virtual-Room is based on an original idea and several experiments from P2PSP organization, which can be found at [WebRTC P2PSP repository](https://github.com/P2PSP/WebRTC) and [P2PSP WebRTC experiments](https://github.com/cristobalmedinalopez/p2psp-webrtc-experiments)
 
 Enjoy!
