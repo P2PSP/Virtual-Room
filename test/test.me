@@ -1,0 +1,25 @@
+#!/bin/bash
+
+trap close_services INT
+
+pidsignal=0
+pidweb=0
+
+function close_services() {
+	kill -9 $pidsignal $pidweb
+        echo -e "\nServices closed"
+	exit 1
+}
+
+# Run signaling server
+python ../src/signal-server/signal_server.py > /dev/null &
+pidsignal=$!
+
+# Run Web server
+php -S 127.0.0.1:3000 routing.php > /dev/null &
+pidweb=$!
+
+while true
+do
+	read -p "Press Ctrl+c to quit"
+done
