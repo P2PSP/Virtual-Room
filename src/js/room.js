@@ -762,17 +762,16 @@ function appendChunk(queue){
 
 function gotLocalStream(localStream, currentPeer){
 	console.log(localStream);
-	window.localStream = localStream
 	// Adding the self video element
 	var peerMediaElements = document.getElementById("peer-media-banner");
 	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("video");
 	peerMediaVideo.setAttribute("class", "z-depth-5");
-	var peerMediaSource = document.createElement("source");
+	peerMediaVideo.autoplay = true;
 	peerMediaVideo.setAttribute("height", "150");
-	peerMediaSource.src = URL.createObjectURL(window.localStream);
-	peerMediaSource.id = "user-media-"+peerID;
-	peerMediaVideo.appendChild(peerMediaSource);
+	peerMediaVideo.srcObject = localStream;
+	window.localStream = localStream
+	peerMediaVideo.id = "user-media-"+peerID;
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
 	peerMediaElements.appendChild(peerMediaDiv);
@@ -790,30 +789,28 @@ function gotLocalStream(localStream, currentPeer){
 				);
 			}
 		);
-		// peerConnection[currentPeer].addStream(window.localStream);
 	}
-	// });
-	// peerConnection[currentPeer].ontrack = function(e){
-	// 	console.log("on track");
-	// 	gotRemoteStream(e);
-	// };
 
 }
 
-function gotRemoteStream(event){
-	console.log(event);
-	var peerMediaElements = document.getElementById("peer-media-banner");
-	var peerMediaDiv = document.createElement("div");
-	var peerMediaVideo = document.createElement("video");
-	peerMediaVideo.setAttribute("class", "z-depth-5");
-	var peerMediaSource = document.createElement("source");
-	peerMediaVideo.setAttribute("height", "150");
-	peerMediaSource.src = event.streams[0];
-	peerMediaSource.id = "user-media-"+peerID;
-	peerMediaVideo.appendChild(peerMediaSource);
-	peerMediaDiv.setAttribute("class", "col s4");
-	peerMediaDiv.appendChild(peerMediaVideo); 
-	peerMediaElements.appendChild(peerMediaDiv);
+// gotRemoteStream called two times on addition of both audio and video tracks
+function gotRemoteStream(event){ 
+	console.log(event.track.kind);
+	if(event.track.kind == "audio"){ // To avoid making two separate elements
+		var peerMediaElements = document.getElementById("peer-media-banner");
+		var peerMediaDiv = document.createElement("div");
+		var peerMediaVideo = document.createElement("video");
+		peerMediaVideo.autoplay = true;
+		peerMediaVideo.setAttribute("class", "z-depth-5");
+		peerMediaVideo.setAttribute("height", "150");
+		peerMediaVideo.id = "user-media-"+currentPeer;
+		peerMediaDiv.setAttribute("class", "col s4");
+		peerMediaDiv.appendChild(peerMediaVideo); 
+		peerMediaElements.appendChild(peerMediaDiv);
+	}else{
+		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
+		peerMediaVideo.srcObject = event.streams[0];
+	}
 }
 
 function vidPlayBack(event){
