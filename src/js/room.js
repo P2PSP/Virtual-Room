@@ -124,12 +124,6 @@ function handleMessage(message){
 	// Initiating multiple connections with peer for new peer 
 	if (parsedMessage.peer_id_list){
 
-		navigator.getUserMedia(constraints, function(stream){
-			localStream = stream;
-			console.log(localStream);
-			gotLocalStream(localStream);
-		}, logError);
-
 		peerIDList = parsedMessage.peer_id_list;
 		console.log(peerIDList);
 		var currentPeerNum; // defining the peerConnection index
@@ -441,6 +435,11 @@ function preInititiation(){
 			console.log("initiating connection with host peer")
 			// initiatePeerConnection(peerID);
 		}else{
+			navigator.getUserMedia(constraints, function(stream){
+				localStream = stream;
+				console.log(localStream);
+				gotLocalStream(localStream, currentPeer);
+			}, logError);
 			console.log(signalServer.readyState);
 			// signalServer.send(JSON.stringify({"addRoom": true, "roomID": peerID}));
 		}
@@ -455,6 +454,7 @@ function initiatePeerConnection(currentPeer, callback){
 
 	console.log(peerConnection[currentPeer]);
 	console.log(currentPeer);
+
 
 	peerConnection[currentPeer].onicecandidate = function(evt){
 		console.log("ice candidate");
@@ -473,13 +473,23 @@ function initiatePeerConnection(currentPeer, callback){
 			console.log(peerID);
 			console.log(peerConnection[currentPeer].localDescription);
 			signalServer.send(JSON.stringify({"sessionDescriptionProtocol": peerConnection[currentPeer].localDescription, "peerID": peerID, "senderID": senderID, "sendTo": currentPeer}));
-			console.log("Done");
+			console.log("Done negotiation");
 		})
 		.catch(logError)
 	};
 	// console.log(localStream);
 	// peerConnection[currentPeer].addStream(localStream);
-	// peerConnection[currentPeer].onaddstream = gotRemoteStream;
+	// peerConnection[currentPeer].ontrack = gotRemoteStream;
+	navigator.getUserMedia(constraints, function(stream){
+		localStream = stream;
+		console.log(localStream);
+		gotLocalStream(localStream, currentPeer);
+	}, logError);
+
+	peerConnection[currentPeer].ontrack = function(e){
+		console.log("on track");
+		gotRemoteStream(e);
+	};
 	callback(currentPeer, setupChannel); // callback is createDataChannel. calling the callback with setupChannel
 }
 
@@ -511,6 +521,11 @@ function gotMessageFromServer(message) {
     currentPeer = parseInt(message.server_id); // server ID
     if (!peerConnection[currentPeer]){ // ice candidate may fire multiple times along with sdp, we want to establish one connection per peer
         peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
+
+		peerConnection[currentPeer].ontrack = function(e){
+			console.log("on track");
+			gotRemoteStream(e);
+		};
         console.log(currentPeer);
         console.log(peerConnection[currentPeer]);
     }
@@ -543,21 +558,17 @@ function gotMessageFromServer(message) {
 		console.log(peerConnections);
 		peerChannel[currentPeer] = event.channel;
 		setupChannel(currentPeer);
-		// window.localStream.getTracks().forEach(
-		// 	function(track) {
-		// 		console.log(track);
-			peerConnection[currentPeer].addStream(window.localStream);
-				// peerConnection[currentPeer].addTrack(
-				// 	track,
-				// 	window.localStream
-				// );
-			// }
-		// );
+		window.localStream.getTracks().forEach(
+			function(track) {
+				console.log(track);
+			// peerConnection[currentPeer].addStream(window.localStream);
+				peerConnection[currentPeer].addTrack(
+					track,
+					window.localStream
+				);
+			}
+		);
 	    console.log(peerConnection[currentPeer]);
-		peerConnection[currentPeer].ontrack = function(e){
-			console.log("on track");
-			gotRemoteStream(e);
-		};
 
 	};
 }
@@ -749,7 +760,7 @@ function appendChunk(queue){
 	}
 }
 
-function gotLocalStream(localStream){
+function gotLocalStream(localStream, currentPeer){
 	console.log(localStream);
 	window.localStream = localStream
 	// Adding the self video element
@@ -767,23 +778,25 @@ function gotLocalStream(localStream){
 	peerMediaElements.appendChild(peerMediaDiv);
 
 	console.log(peerIDList);
-	peerIDList.map(function(currentPeer){
-
-		// window.localStream.getTracks().forEach(
-		// 	function(track) {
-		// 		console.log("adding stream to "+currentPeer);
-		// 		peerConnection[currentPeer].addTrack(
-		// 			track,
-		// 			window.localStream
-		// 		);
-		// 	}
-			peerConnection[currentPeer].addStream(window.localStream);
-		// );
-		peerConnection[currentPeer].ontrack = function(e){
-			console.log("on track");
-			gotRemoteStream(e);
-		};
-	});
+	// peerIDList.map(function(currentPeer){
+	if(senderID!=peerID){
+		window.localStream.getTracks().forEach(
+			function(track) {
+				console.log("adding stream to "+currentPeer);
+				console.log(peerConnection[currentPeer]);
+				peerConnection[currentPeer].addTrack(
+					track,
+					window.localStream
+				);
+			}
+		);
+		// peerConnection[currentPeer].addStream(window.localStream);
+	}
+	// });
+	// peerConnection[currentPeer].ontrack = function(e){
+	// 	console.log("on track");
+	// 	gotRemoteStream(e);
+	// };
 
 }
 
@@ -795,7 +808,7 @@ function gotRemoteStream(event){
 	peerMediaVideo.setAttribute("class", "z-depth-5");
 	var peerMediaSource = document.createElement("source");
 	peerMediaVideo.setAttribute("height", "150");
-	peerMediaSource.src = URL.createObjectURL(event.streams[0]);
+	peerMediaSource.src = event.streams[0];
 	peerMediaSource.id = "user-media-"+peerID;
 	peerMediaVideo.appendChild(peerMediaSource);
 	peerMediaDiv.setAttribute("class", "col s4");
