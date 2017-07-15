@@ -526,6 +526,18 @@ function gotMessageFromServer(message) {
 			console.log("on track");
 			gotRemoteStream(e);
 		};
+
+		window.localStream.getTracks().forEach(
+			function(track) {
+				console.log("adding stream to "+currentPeer);
+				console.log(peerConnection[currentPeer]);
+				peerConnection[currentPeer].addTrack(
+					track,
+					window.localStream
+				);
+			}
+		);
+		
         console.log(currentPeer);
         console.log(peerConnection[currentPeer]);
     }
@@ -557,18 +569,8 @@ function gotMessageFromServer(message) {
 		peerConnections.push(currentPeer);
 		console.log(peerConnections);
 		peerChannel[currentPeer] = event.channel;
-		setupChannel(currentPeer);
-		window.localStream.getTracks().forEach(
-			function(track) {
-				console.log(track);
-			// peerConnection[currentPeer].addStream(window.localStream);
-				peerConnection[currentPeer].addTrack(
-					track,
-					window.localStream
-				);
-			}
-		);
 	    console.log(peerConnection[currentPeer]);
+		setupChannel(currentPeer);
 
 	};
 }
