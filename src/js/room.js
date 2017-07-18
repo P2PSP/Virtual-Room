@@ -3,8 +3,9 @@ var vidHeight = vid.getAttribute("height");
 var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
-var baseURL = "http://127.0.0.1:3000/room/new/"; // Will be changed accordingly
-var homeURL = "http://127.0.0.1:3000/room/welcome/";
+var domainURL = "http://127.0.0.1:3000";
+var baseURL = domainURL+"/room/new/"; // Will be changed accordingly
+var homeURL = domainURL+"/room/welcome/";
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
@@ -117,7 +118,7 @@ function handleMessage(message){
 
 	if (parsedMessage.roomExists=="false"){
 		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
-		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
+		window.location.href = domainURL+"/src/html/room.html";
 	});
 	};
 
