@@ -464,7 +464,7 @@ function preInititiation(){
 				localStream = stream;
 				console.log(localStream);
 				gotLocalStream(localStream, currentPeer);
-			}, logError);
+			}, fallbackUserMedia);
 			console.log(signalServer.readyState);
 			// signalServer.send(JSON.stringify({"addRoom": true, "roomID": peerID}));
 		}
@@ -473,6 +473,14 @@ function preInititiation(){
 }
 
 function fallbackUserMedia(){
+	try{
+		peerMediaVideo = document.getElementById("user-media-"+peerID);
+		var peerMediaElements = document.getElementById("peer-media-banner");
+		peerMediaVideo.parentNode.parentNode.removeChild(peerMediaVideo.parentNode);
+	}
+	catch(e){
+		console.log("No pre existing element");
+	}
 	var peerMediaElements = document.getElementById("peer-media-banner");
 	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("img");
@@ -487,19 +495,6 @@ function fallbackUserMedia(){
 	peerMediaElements.appendChild(peerMediaDiv);
 
 	console.log(peerIDList);
-	// peerIDList.map(function(currentPeer){
-	if(senderID!=peerID){
-		window.localStream.getTracks().forEach(
-			function(track) {
-				console.log("adding stream to "+currentPeer);
-				console.log(peerConnection[currentPeer]);
-				peerConnection[currentPeer].addTrack(
-					track,
-					window.localStream
-				);
-			}
-		);
-	}
 }
 
 // Initiating peer connection with the host
@@ -538,7 +533,7 @@ function initiatePeerConnection(currentPeer, callback){
 		localStream = stream;
 		console.log(localStream);
 		gotLocalStream(localStream, currentPeer);
-	}, logError);
+	}, fallbackUserMedia);
 
 	peerConnection[currentPeer].ontrack = function(e){
 		console.log("on track");
@@ -581,16 +576,19 @@ function gotMessageFromServer(message) {
 			gotRemoteStream(e);
 		};
 
-		window.localStream.getTracks().forEach(
-			function(track) {
-				console.log("adding stream to "+currentPeer);
-				console.log(peerConnection[currentPeer]);
-				peerConnection[currentPeer].addTrack(
-					track,
-					window.localStream
-				);
-			}
-		);
+		var peerMediaVideo = document.getElementById("user-media-"+peerID);
+		if(peerMediaVideo.nodeName == "VIDEO"){
+			window.localStream.getTracks().forEach(
+				function(track) {
+					console.log("adding stream to "+currentPeer);
+					console.log(peerConnection[currentPeer]);
+					peerConnection[currentPeer].addTrack(
+						track,
+						window.localStream
+					);
+				}
+			);
+		}
 		
         console.log(currentPeer);
         console.log(peerConnection[currentPeer]);
@@ -630,6 +628,7 @@ function gotMessageFromServer(message) {
 }
 
 function logError(e) {
+	console.log(e);
     console.log("error occured "+e.name + "with message " + e.message);
 }
 
@@ -732,6 +731,7 @@ function readyChunk(chunk, updateCount){
 // setting up channel to transmit data betweeen the peers
 function setupChannel(currentPeer){
 	console.log("setup data channel");
+	console.log(peerChannel[currentPeer]);
 	peerChannel[currentPeer].onopen = function(event){
 		console.log(currentPeer);
 		console.log(peerChannel[currentPeer]);
@@ -891,6 +891,7 @@ function gotRemoteStream(event){
 	// Removing the new temporary div(if made) made during setting up data channel
 	if(event.track.kind == "audio"){ // To avoid making two separate elements
 		try{
+			console.log("removing");
 			peerMediaVideo = document.getElementById("user-media-"+currentPeer);
 			var peerMediaElements = document.getElementById("peer-media-banner");
 			peerMediaVideo.parentNode.parentNode.removeChild(peerMediaVideo.parentNode);
