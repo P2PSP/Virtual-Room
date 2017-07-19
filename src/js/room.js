@@ -3,7 +3,9 @@ var vidHeight = vid.getAttribute("height");
 var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
-var domainURL = "http://127.0.0.1:3000";
+var hostURL = window.location.hostname;
+var hostPort = window.location.port;
+var domainURL = "http://" + hostURL + ":" + hostPort;
 var baseURL = domainURL+"/room/new/"; // Will be changed accordingly
 var homeURL = domainURL+"/room/welcome/";
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
