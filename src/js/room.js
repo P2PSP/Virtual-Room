@@ -52,21 +52,30 @@ preInititiation();
 // if there is a new user he will be directed to base url as he makes a virtual room, and if an new peer joins existing room we assign sender id according to the window location
 var currentPeer;
 
+// add pause listener to the video player
+function addPauseListener(){
+    vid.onpause = function(){
+    	var event = "pause";
+    	vidPlayBack(event);
+    }
+}
+
+// add play listener to the video player
+function addPlayListener(){
+    vid.onplay = function(){
+    	var event = "play";
+    	vidPlayBack(event);
+    }
+}
+
 window.onload = function(){
 	console.log("window loaded");
 	mp4box = new MP4Box();
     vid.addEventListener('canplay', function () {
             vid.play();
     });
-    vid.onpause = function(){
-    	var event = "pause";
-    	vidPlayBack(event);
-    }
-
-    vid.onplay = function(){
-    	var event = "play";
-    	vidPlayBack(event);
-    }
+    addPauseListener();
+    addPlayListener();
 // 	history.replaceState('', '', baseURL + peerID);
 // 	generateURL();
 // 	preInititiation();
@@ -694,12 +703,25 @@ function setupChannel(currentPeer){
 		if(typeof event.data == "string"){
 			var message = JSON.parse(event.data);
 			console.log(message);
+			// the following callbacks to take care of not retransmitting the playback message again and again by all the peers
 			if (message.event == "pause"){
+				// onpause doesn't return a promise like onplay event
+				vid.onpause = function(){
+					addPauseListener();
+				};
 				vid.pause();
 				Materialize.toast(message.peerID+" paused the video", 2000);
+
 			}else{
-				vid.play();
-				Materialize.toast(message.peerID+" played the video", 2000);
+				vid.onplay = function(){};
+				vid.play()
+				.then(function(){
+				Materialize.toast(message.peerID+" played the video", 2000);	
+				})
+				.then(function(){
+					console.log("adding play listener");
+				    addPlayListener();
+				})
 			}
 			return;
 		}
@@ -816,7 +838,8 @@ function gotRemoteStream(event){
 }
 
 function vidPlayBack(event){
-	peerIDList.map(function(currentPeer){
+	console.log(peerConnections);
+	peerConnections.map(function(currentPeer){
 		try{
 			peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
 		}
