@@ -16,7 +16,9 @@ python ../src/signal-server/signal_server.py > /dev/null &
 pidsignal=$!
 
 # Run Web server
-php -S 127.0.0.1:3000 routing.php > /dev/null &
+port=${1:-3000}
+echo "Using port:" $port
+php -S 0.0.0.0:$port routing.php > /dev/null &
 pidweb=$!
 
 while true
