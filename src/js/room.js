@@ -21,6 +21,8 @@ var outBuffer = new Array();
 var sourceBuffer = null;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
+var signalServerPort = 8000;
+var signalServerURL = "ws://" + hostURL + ":" + signalServerPort
 var peerConnection = [];
 var peerConnections = [];
 var peerIDServer;
@@ -428,7 +430,7 @@ function onFragment(_) {
 
 // Function to avoid confusions about new peers and creator of the room
 function preInititiation(){
-	signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
+	signalServer = new WebSocket(signalServerURL); // Set to local websocket for now
 	signalServer.binaryType = "arraybuffer";
 	// setTimeout(function(){
 	// signalServer.onopen = function(){
