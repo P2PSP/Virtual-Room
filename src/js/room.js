@@ -705,21 +705,21 @@ function setupChannel(currentPeer){
 			console.log(message);
 			// the following callbacks to take care of not retransmitting the playback message again and again by all the peers
 			if (message.event == "pause"){
-				vid.onpause = function(){};
-				vid.pause()
-				.then(function(){
-					Materialize.toast(message.peerID+" paused the video", 2000)
-				})
-				.then(function(){
-				    addPauseListener();	
-				})
+				// onpause doesn't return a promise like onplay event
+				vid.onpause = function(){
+					addPauseListener();
+				};
+				vid.pause();
+				Materialize.toast(message.peerID+" paused the video", 2000);
+
 			}else{
 				vid.onplay = function(){};
 				vid.play()
 				.then(function(){
-					Materialize.toast(message.peerID+" played the video", 2000);
+				Materialize.toast(message.peerID+" played the video", 2000);	
 				})
 				.then(function(){
+					console.log("adding play listener");
 				    addPlayListener();
 				})
 			}
