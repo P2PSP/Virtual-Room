@@ -3,8 +3,11 @@ var vidHeight = vid.getAttribute("height");
 var vidWidth = vid.getAttribute("width");
 var vidFile = document.getElementById("video-file");
 var broadcastURL = document.getElementById("broadcast-url");
-var baseURL = "http://127.0.0.1:3000/room/new/"; // Will be changed accordingly
-var homeURL = "http://127.0.0.1:3000/room/welcome/";
+var hostURL = window.location.hostname;
+var hostPort = window.location.port;
+var domainURL = "http://" + hostURL + ":" + hostPort;
+var baseURL = domainURL+"/room/new/"; // Will be changed accordingly
+var homeURL = domainURL+"/room/welcome/";
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
 var aspectRatio;
@@ -18,6 +21,8 @@ var outBuffer = new Array();
 var sourceBuffer = null;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
+var signalServerPort = 8000;
+var signalServerURL = "ws://" + hostURL + ":" + signalServerPort
 var peerConnection = [];
 var peerConnections = [];
 var peerIDServer;
@@ -126,7 +131,7 @@ function handleMessage(message){
 
 	if (parsedMessage.roomExists=="false"){
 		Materialize.toast("OOPS! We couldn't find a room with this url", 2000, '',function(){
-		window.location.href = "http://127.0.0.1:3000/src/html/room.html";
+		window.location.href = domainURL+"/src/html/room.html";
 	});
 	};
 
@@ -434,7 +439,7 @@ function onFragment(_) {
 
 // Function to avoid confusions about new peers and creator of the room
 function preInititiation(){
-	signalServer = new WebSocket("ws://127.0.0.1:8000/"); // Set to local websocket for now
+	signalServer = new WebSocket(signalServerURL); // Set to local websocket for now
 	signalServer.binaryType = "arraybuffer";
 	// setTimeout(function(){
 	// signalServer.onopen = function(){
