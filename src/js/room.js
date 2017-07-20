@@ -571,6 +571,20 @@ function gotMessageFromServer(message) {
     if (!peerConnection[currentPeer]){ // ice candidate may fire multiple times along with sdp, we want to establish one connection per peer
         peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
 
+		var avatarPath = "../img/default_avatar.png";
+		var peerMediaElements = document.getElementById("peer-media-banner");
+		var peerMediaDiv = document.createElement("div");
+		var peerMediaVideo = document.createElement("img");
+		peerMediaVideo.setAttribute("class", "z-depth-5");
+		peerMediaVideo.autoplay = true;
+		peerMediaVideo.setAttribute("height", "150");
+		peerMediaVideo.src = avatarPath;
+		// window.localStream = localStream
+		peerMediaVideo.id = "user-media-"+currentPeer;
+		peerMediaDiv.setAttribute("class", "col s4");
+		peerMediaDiv.appendChild(peerMediaVideo); 
+		peerMediaElements.appendChild(peerMediaDiv);
+
 		peerConnection[currentPeer].ontrack = function(e){
 			console.log("on track");
 			gotRemoteStream(e);
@@ -741,20 +755,6 @@ function setupChannel(currentPeer){
 		var peerNumUpdated = 1+peerConnections.length;
 		peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
 
-		var avatarPath = "../img/default_avatar.png";
-		var peerMediaElements = document.getElementById("peer-media-banner");
-		var peerMediaDiv = document.createElement("div");
-		var peerMediaVideo = document.createElement("img");
-		peerMediaVideo.setAttribute("class", "z-depth-5");
-		peerMediaVideo.autoplay = true;
-		peerMediaVideo.setAttribute("height", "150");
-		peerMediaVideo.src = avatarPath;
-		// window.localStream = localStream
-		peerMediaVideo.id = "user-media-"+currentPeer;
-		peerMediaDiv.setAttribute("class", "col s4");
-		peerMediaDiv.appendChild(peerMediaVideo); 
-		peerMediaElements.appendChild(peerMediaDiv);
-
 		console.log(peerNum.innerText);
 	};
 
@@ -893,10 +893,12 @@ function gotRemoteStream(event){
 		try{
 			console.log("removing");
 			peerMediaVideo = document.getElementById("user-media-"+currentPeer);
+			console.log(peerMediaVideo);
 			var peerMediaElements = document.getElementById("peer-media-banner");
 			peerMediaVideo.parentNode.parentNode.removeChild(peerMediaVideo.parentNode);
 		}
 		catch(e){
+			console.log(e);
 			console.log("No pre existing element");
 		}
 		var peerMediaElements = document.getElementById("peer-media-banner");
