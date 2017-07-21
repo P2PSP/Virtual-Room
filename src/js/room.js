@@ -34,6 +34,7 @@ var peerIndex = 0; // The index of array peerConnections
 var mp4box;
 var constraints = {'video': true, 'audio': true}; // Have to play with audio constraints, since the peer should not be able to hear hi own voice, but the peers should receive user audio
 var localStream; // The stream getting through getUserMedia for video calling
+var avatarPath = "../img/default_avatar.png";
 
 console.log(peerID);
 
@@ -441,8 +442,18 @@ function onFragment(_) {
 function preInititiation(){
 	signalServer = new WebSocket(signalServerURL); // Set to local websocket for now
 	signalServer.binaryType = "arraybuffer";
-	// setTimeout(function(){
-	// signalServer.onopen = function(){
+
+	var peerMediaElements = document.getElementById("peer-media-banner");
+	var peerMediaDiv = document.createElement("div");
+	var peerMediaVideo = document.createElement("img");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaVideo.src = avatarPath;
+	peerMediaVideo.id = "user-media-"+peerID;
+	peerMediaDiv.setAttribute("class", "col s4");
+	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
+
 		if (peerID != senderID){
 			currentPeer = 0; // Since server ID of the host will always be 0 for a new room
 			// addPeer();    // Will resume this function while on the feature of video calling
@@ -453,7 +464,7 @@ function preInititiation(){
 				localStream = stream;
 				console.log(localStream);
 				gotLocalStream(localStream, currentPeer);
-			}, logError);
+			}, fallbackUserMedia);
 			console.log(signalServer.readyState);
 			// signalServer.send(JSON.stringify({"addRoom": true, "roomID": peerID}));
 		}
@@ -461,6 +472,30 @@ function preInititiation(){
 	// }, 2000);
 }
 
+function fallbackUserMedia(){
+	try{
+		peerMediaVideo = document.getElementById("user-media-"+peerID);
+		var peerMediaElements = document.getElementById("peer-media-banner");
+		peerMediaVideo.parentNode.parentNode.removeChild(peerMediaVideo.parentNode);
+	}
+	catch(e){
+		console.log("No pre existing element");
+	}
+	var peerMediaElements = document.getElementById("peer-media-banner");
+	var peerMediaDiv = document.createElement("div");
+	var peerMediaVideo = document.createElement("img");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	peerMediaVideo.autoplay = true;
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaVideo.src = avatarPath;
+	window.localStream = localStream
+	peerMediaVideo.id = "user-media-"+peerID;
+	peerMediaDiv.setAttribute("class", "col s4");
+	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaElements.appendChild(peerMediaDiv);
+
+	console.log(peerIDList);
+}
 
 // Initiating peer connection with the host
 function initiatePeerConnection(currentPeer, callback){
@@ -498,7 +533,7 @@ function initiatePeerConnection(currentPeer, callback){
 		localStream = stream;
 		console.log(localStream);
 		gotLocalStream(localStream, currentPeer);
-	}, logError);
+	}, fallbackUserMedia);
 
 	peerConnection[currentPeer].ontrack = function(e){
 		console.log("on track");
@@ -536,21 +571,38 @@ function gotMessageFromServer(message) {
     if (!peerConnection[currentPeer]){ // ice candidate may fire multiple times along with sdp, we want to establish one connection per peer
         peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
 
+		var avatarPath = "../img/default_avatar.png";
+		var peerMediaElements = document.getElementById("peer-media-banner");
+		var peerMediaDiv = document.createElement("div");
+		var peerMediaVideo = document.createElement("img");
+		peerMediaVideo.setAttribute("class", "z-depth-5");
+		peerMediaVideo.autoplay = true;
+		peerMediaVideo.setAttribute("height", "150");
+		peerMediaVideo.src = avatarPath;
+		// window.localStream = localStream
+		peerMediaVideo.id = "user-media-"+currentPeer;
+		peerMediaDiv.setAttribute("class", "col s4");
+		peerMediaDiv.appendChild(peerMediaVideo); 
+		peerMediaElements.appendChild(peerMediaDiv);
+
 		peerConnection[currentPeer].ontrack = function(e){
 			console.log("on track");
 			gotRemoteStream(e);
 		};
 
-		window.localStream.getTracks().forEach(
-			function(track) {
-				console.log("adding stream to "+currentPeer);
-				console.log(peerConnection[currentPeer]);
-				peerConnection[currentPeer].addTrack(
-					track,
-					window.localStream
-				);
-			}
-		);
+		var peerMediaVideo = document.getElementById("user-media-"+peerID);
+		if(peerMediaVideo.nodeName == "VIDEO"){
+			window.localStream.getTracks().forEach(
+				function(track) {
+					console.log("adding stream to "+currentPeer);
+					console.log(peerConnection[currentPeer]);
+					peerConnection[currentPeer].addTrack(
+						track,
+						window.localStream
+					);
+				}
+			);
+		}
 		
         console.log(currentPeer);
         console.log(peerConnection[currentPeer]);
@@ -590,6 +642,7 @@ function gotMessageFromServer(message) {
 }
 
 function logError(e) {
+	console.log(e);
     console.log("error occured "+e.name + "with message " + e.message);
 }
 
@@ -692,6 +745,7 @@ function readyChunk(chunk, updateCount){
 // setting up channel to transmit data betweeen the peers
 function setupChannel(currentPeer){
 	console.log("setup data channel");
+	console.log(peerChannel[currentPeer]);
 	peerChannel[currentPeer].onopen = function(event){
 		console.log(currentPeer);
 		console.log(peerChannel[currentPeer]);
@@ -700,6 +754,7 @@ function setupChannel(currentPeer){
 		console.log(peerNum.innerText);
 		var peerNumUpdated = 1+peerConnections.length;
 		peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
+
 		console.log(peerNum.innerText);
 	};
 
@@ -791,7 +846,14 @@ function appendChunk(queue){
 
 function gotLocalStream(localStream, currentPeer){
 	console.log(localStream);
-	// Adding the self video element
+	try{
+		peerMediaVideo = document.getElementById("user-media-"+peerID);
+		var peerMediaElements = document.getElementById("peer-media-banner");
+		peerMediaVideo.parentNode.parentNode.removeChild(peerMediaVideo.parentNode);
+	}
+	catch(e){
+		console.log("No pre existing element");
+	}
 	var peerMediaElements = document.getElementById("peer-media-banner");
 	var peerMediaDiv = document.createElement("div");
 	var peerMediaVideo = document.createElement("video");
@@ -825,10 +887,23 @@ function gotLocalStream(localStream, currentPeer){
 // gotRemoteStream called two times on addition of both audio and video tracks
 function gotRemoteStream(event){ 
 	console.log(event.track.kind);
+	var peerMediaVideo;
+	// Removing the new temporary div(if made) made during setting up data channel
 	if(event.track.kind == "audio"){ // To avoid making two separate elements
+		try{
+			console.log("removing");
+			peerMediaVideo = document.getElementById("user-media-"+currentPeer);
+			console.log(peerMediaVideo);
+			var peerMediaElements = document.getElementById("peer-media-banner");
+			peerMediaVideo.parentNode.parentNode.removeChild(peerMediaVideo.parentNode);
+		}
+		catch(e){
+			console.log(e);
+			console.log("No pre existing element");
+		}
 		var peerMediaElements = document.getElementById("peer-media-banner");
 		var peerMediaDiv = document.createElement("div");
-		var peerMediaVideo = document.createElement("video");
+		peerMediaVideo = document.createElement("video");
 		peerMediaVideo.autoplay = true;
 		peerMediaVideo.setAttribute("class", "z-depth-5");
 		peerMediaVideo.setAttribute("height", "150");
