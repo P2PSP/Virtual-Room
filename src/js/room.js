@@ -52,6 +52,13 @@ if (window.location.href.length - peerID.length == baseURL.length){
 	senderID = peerID;
 }
 
+
+window.onbeforeunload = function exitPeer(){
+	peerConnections.map(function(currentPeer){
+		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "exitPeer": true, "peerIDServer": peerIDServer}));
+	});
+}
+
 generateURL();
 preInititiation();
 
@@ -570,7 +577,7 @@ function gotMessageFromServer(message) {
     currentPeer = parseInt(message.server_id); // server ID
     if (!peerConnection[currentPeer]){ // ice candidate may fire multiple times along with sdp, we want to establish one connection per peer
         peerConnection[currentPeer] = new RTCPeerConnection(serverConfig);
-
+        console.log("making element");
 		var avatarPath = "../img/default_avatar.png";
 		var peerMediaElements = document.getElementById("peer-media-banner");
 		var peerMediaDiv = document.createElement("div");
@@ -760,28 +767,37 @@ function setupChannel(currentPeer){
 
 	peerChannel[currentPeer].onmessage = function (event) {
 		console.log("message received");
+
 		if(typeof event.data == "string"){
 			var message = JSON.parse(event.data);
 			console.log(message);
 			// the following callbacks to take care of not retransmitting the playback message again and again by all the peers
-			if (message.event == "pause"){
-				// onpause doesn't return a promise like onplay event
-				vid.onpause = function(){
-					addPauseListener();
-				};
-				vid.pause();
-				Materialize.toast(message.peerID+" paused the video", 2000);
+			if (message.event){
+				if (message.event == "pause"){
+					// onpause doesn't return a promise like onplay event
+					vid.onpause = function(){
+						addPauseListener();
+					};
+					vid.pause();
+					Materialize.toast(message.peerID+" paused the video", 2000);
+			
+				}else{
+					vid.onplay = function(){};
+					vid.play()
+					.then(function(){
+					Materialize.toast(message.peerID+" played the video", 2000);	
+					})
+					.then(function(){
+						console.log("adding play listener");
+					    addPlayListener();
+					})
+				}
+			}
 
-			}else{
-				vid.onplay = function(){};
-				vid.play()
-				.then(function(){
-				Materialize.toast(message.peerID+" played the video", 2000);	
-				})
-				.then(function(){
-					console.log("adding play listener");
-				    addPlayListener();
-				})
+			if(message.exitPeer){
+				Materialize.toast(message.peerID+' said goodbye!', 3000);
+				var peerIndex = peerConnections.indexOf(message.peerIDServer)
+				peerConnections.splice(peerIndex, 1);
 			}
 			return;
 		}
@@ -913,6 +929,7 @@ function gotRemoteStream(event){
 		peerMediaElements.appendChild(peerMediaDiv);
 	}else{
 		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
+		console.log(peerMediaVideo);
 		peerMediaVideo.srcObject = event.streams[0];
 	}
 }
