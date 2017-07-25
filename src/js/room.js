@@ -58,7 +58,11 @@ if (window.location.href.length - peerID.length == baseURL.length){
 
 window.onbeforeunload = function exitPeer(){
 	peerConnections.map(function(currentPeer){
-		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "exitPeer": true, "peerIDServer": peerIDServer}));
+		if(alias == null){
+			peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "exitPeer": true, "peerIDServer": peerIDServer}));
+		}else{
+			peerChannel[currentPeer].send(JSON.stringify({"peerID": alias, "exitPeer": true, "peerIDServer": peerIDServer}));
+		}
 	});
 }
 
