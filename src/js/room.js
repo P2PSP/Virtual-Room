@@ -35,6 +35,9 @@ var mp4box;
 var constraints = {'video': true, 'audio': true}; // Have to play with audio constraints, since the peer should not be able to hear hi own voice, but the peers should receive user audio
 var localStream; // The stream getting through getUserMedia for video calling
 var avatarPath = "../img/default_avatar.png";
+var peerAlias = document.getElementById("peer-alias");
+var alias;
+var aliasList = [];
 
 console.log(peerID);
 
@@ -55,7 +58,11 @@ if (window.location.href.length - peerID.length == baseURL.length){
 
 window.onbeforeunload = function exitPeer(){
 	peerConnections.map(function(currentPeer){
-		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "exitPeer": true, "peerIDServer": peerIDServer}));
+		if(alias == null){
+			peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "exitPeer": true, "peerIDServer": peerIDServer}));
+		}else{
+			peerChannel[currentPeer].send(JSON.stringify({"peerID": alias, "exitPeer": true, "peerIDServer": peerIDServer}));
+		}
 	});
 }
 
@@ -213,6 +220,11 @@ vidFile.onchange = function(){
 		vid.setAttribute("controls", "");
 	    streambtn.setAttribute("class", "btn-flat waves-effect waves-light red");
     };
+
+peerAlias.onkeydown = function(){
+	var aliasbtn = document.getElementById('alias-btn');
+	aliasbtn.setAttribute("class", "btn z-depth-3 red darken-4 col s12")
+}
 
 function streamVideo(){
 	// Make a separate function to load the video and call it in the main streamVideo() function
@@ -643,6 +655,13 @@ function gotMessageFromServer(message) {
 		console.log(peerConnections);
 		peerChannel[currentPeer] = event.channel;
 	    console.log(peerConnection[currentPeer]);
+		try{
+			peerChannel[currentPeer].send(JSON.stringify({"aliasList": aliasList}));
+			console.log("sent");
+		}
+		catch(e){
+			console.log("error -> "+e);
+		}
 		setupChannel(currentPeer);
 
 	};
@@ -763,6 +782,7 @@ function setupChannel(currentPeer){
 		peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
 
 		console.log(peerNum.innerText);
+
 	};
 
 	peerChannel[currentPeer].onmessage = function (event) {
@@ -799,6 +819,12 @@ function setupChannel(currentPeer){
 				var peerIndex = peerConnections.indexOf(message.peerIDServer)
 				peerConnections.splice(peerIndex, 1);
 			}
+
+			if(message.aliasList){
+				aliasList = message.aliasList;
+				console.log(aliasList);
+			}
+
 			return;
 		}
 
@@ -938,10 +964,54 @@ function vidPlayBack(event){
 	console.log(peerConnections);
 	peerConnections.map(function(currentPeer){
 		try{
-			peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
+			if(alias == null){
+				peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": event}));
+			}else{
+				peerChannel[currentPeer].send(JSON.stringify({"peerID": alias, "event": event}));
+			}
 		}
 		catch(e){
 			console.log("error -> "+e);
 		}
 	});
+}
+
+function setAlias(){
+	if(aliasList.includes(peerAlias.value)){
+		Materialize.toast("This alias is already taken! Please choose some other", 3000);
+		if(alias == null){
+			peerAlias.value = "";
+		}else{
+			peerAlias.value = alias;
+		}
+	}else{
+		console.log(peerAlias.value);
+		if(peerAlias.value == ""){
+			Materialize.toast("Please enter a valid alias name!", 3000);
+		}else{
+			try{
+				aliasList.pop(alias); // if alias pre exists
+			}
+			catch(e){
+				console.log("alias not set!");
+			}
+			alias = peerAlias.value;
+			peerAlias.disabled = true;
+			aliasList.push(alias);
+			var aliasbtn = document.getElementById('alias-btn');
+			aliasbtn.setAttribute("class", "btn disabled z-depth-3 red darken-4 col s12")
+			peerConnections.map(function(currentPeer){
+				try{
+					peerChannel[currentPeer].send(JSON.stringify({"aliasList": aliasList}));
+				}
+				catch(e){
+					console.log("error -> "+e);
+				}
+			});
+			}
+		}
+}
+
+function enableInput(){
+	peerAlias.removeAttribute('disabled');
 }

@@ -35,7 +35,16 @@
               <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
             </div>
       <div class="col s6">
-        <div class="row left col s3 push-s9">
+        <div class="col s4" onclick="enableInput()">
+          <!-- <h5 id="peer-alias">peerID</h5> -->
+          <input class="validate" type="text" id="peer-alias" placeholder="Type your alias in here" >
+        </div>
+        <div class="col s4">
+          <div class="btn disabled z-depth-3 red darken-4 col s12" onclick="setAlias()" id="alias-btn">
+            <span>Set Alias!</span>
+          </div>
+        </div>
+        <div class="row left col s3 push-s1">
             <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text">Stream!</span></a>
         </div>
       </div>
