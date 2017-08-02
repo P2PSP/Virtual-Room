@@ -39,6 +39,8 @@ var peerAlias = document.getElementById("peer-alias");
 var alias;
 var aliasList = [];
 var offerCreated = false;
+var peerPending = null;
+var lastChunkSplitter;
 
 console.log(peerID);
 
@@ -730,26 +732,28 @@ function sendChunk(chunk){
 		}
 	}else{ // when peer transmits their share of chunks to all other peers
 
-		var peerIndex = 0;
-		for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
-			console.log(peerIndex);
-			if(peerConnections[peerIndex] == 0){
-				console.log("peer is host");
-				peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+		if(peerPending == null){
+			peerPending = peerConnections[1];
+		}
+		var peerIndex = peerConnection.indexOf(peerPending);
+		// for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
+			// console.log(peerIndex);
+		if(peerPending == 0){
+			console.log("peer is host");
+			peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+		}
+		console.log(peerPending);
+		if (peerPending!=0 && peerPending!=senderID){ // So that the chunk doesn't go to the host or the sender
+			console.log("trying to send chunk");
+			try{
+				console.log(peerChannel);
+				console.log(peerChannel[peerPending]);
+				console.log(chunk.slice(1,2)[0]);
+				peerChannel[peerPending].send(chunk);
 			}
-			console.log(peerConnections[peerIndex]);
-			if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
-				console.log("trying to send chunk");
-				try{
-					console.log(peerChannel);
-					console.log(peerChannel[peerConnections[peerIndex]]);
-					console.log(chunk.slice(1,2)[0]);
-					peerChannel[peerConnections[peerIndex]].send(chunk);
-				}
-				catch(e){
-					console.log(e);
-					Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
-				}
+			catch(e){
+				console.log(e);
+				Materialize.toast("The peer with ID "+peerPending+" has left!", 2000);
 			}
 		}
 	}
@@ -776,7 +780,8 @@ function readyChunk(chunk, updateCount){
 		console.log(streamMessage.slice(1,3)[0])
 		streamMessage.set(chunkBuffer, 3);
 
-		if(peerConnections.length>0){
+		if(peerConnections.length>1 || peerIDServer == 0){
+			console.log(peerConnections);
 			sendChunk(streamMessage);
 		}	
 }
@@ -857,7 +862,15 @@ function setupChannel(currentPeer){
 		senderID[0] = peerIDServer;
 		console.log(peerIDServer);
 		console.log(chunkNum[0]);
-		readyChunk(chunkBuffer, chunkNum[0]);
+		if(streamSender == 0 && peerPending != null){
+			sendBurstMode(chunkBuffer, chunkNum[0]);
+			lastChunkSplitter = chunkBuffer;
+		}else{
+			if(streamSender == 0){
+				lastChunkSplitter = chunkBuffer;
+			}
+			readyChunk(lastChunkSplitter, chunkNum[0]);
+		}
 		gotChunk(chunkBuffer ,chunkNum[0]);
 		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
@@ -1047,4 +1060,50 @@ function setAlias(){
 
 function enableInput(){
 	peerAlias.removeAttribute('disabled');
+}
+
+function sendBurstMode(chunk, updateCount){
+	var stream = chunk;
+	var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
+	var senderID = new Uint8Array(1);
+	var chunkNum = new Uint8Array(2);
+	var chunkBuffer = new Uint8Array(stream);
+	var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
+
+	senderID[0] = peerIDServer;
+	console.log(updateCount);
+	chunkNum[0] = updateCount+bufferCounter;
+	chunkNum[1] = updateCount+bufferCounter>>8;
+	console.log(senderID);
+
+	streamMessage.set(senderID, 0);
+	streamMessage.set(chunkNum, 1);
+	console.log(streamMessage.slice(1,3)[0])
+	streamMessage.set(chunkBuffer, 3);
+
+	var peerIndex = peerConnections.indexOf(peerPending);
+	for(peerIndex = peerConnections.indexOf(peerPending); peerIndex<peerConnections.length; peerIndex++){
+		console.log(peerIndex);
+		if(peerConnections[peerIndex] == 0){
+			console.log("peer is host");
+			peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+		}
+		console.log(peerConnections[peerIndex]);
+		if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
+			console.log("trying to send chunk");
+			try{
+				console.log(peerChannel);
+				console.log(peerChannel[peerConnections[peerIndex]]);
+				console.log(chunk.slice(1,2)[0]);
+				peerChannel[peerConnections[peerIndex]].send(streamMessage);
+			}
+			catch(e){
+				console.log(e);
+				Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
+			}
+		}
+	}
+	peerPending = null;
+	// lastChunkSplitter = chunk;
+
 }
