@@ -41,6 +41,9 @@ var aliasList = [];
 var offerCreated = false;
 var peerPending = null;
 var lastChunkSplitter;
+var chunkStartTime = 0;
+var chunkEndTime = 10;
+var bytesAppended = 0;
 
 console.log(peerID);
 
@@ -784,7 +787,7 @@ function readyChunk(chunk, updateCount){
 		console.log(streamMessage.slice(1,3)[0])
 		streamMessage.set(chunkBuffer, 3);
 
-		if(peerConnections.length>0 || peerIDServer == 0){
+		if(peerConnections.length>1 || peerIDServer == 0){
 			console.log(peerConnections);
 			sendChunk(streamMessage);
 		}	
@@ -905,12 +908,37 @@ function appendChunk(queue){
 	if (queue[chunkToPlay]!=null){
 		$("#video-stream").LoadingOverlay("hide", true);
 		console.log("trying to play");
+		try{
+			if(!sourceBuffer.updating){
+				var chunkAppend = new Uint8Array(queue[chunkToPlay])
+				sourceBuffer.appendBuffer(chunkAppend);
+				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
+				console.log(chunkToPlay);
+				// chunkEndTime[updateCount] = bytesAppended*(durationInSeconds/videoFile.size)
+			}
+		}
+        catch(e){
+        	console.log(e);
+        	// if (e.name == "QuotaExceededError"){
+    		console.log("clean buffer");
+    		// var prevChunkEndTime = Math.max.apply(Math, chunkEndTime.filter(function(x){return x <= vid.currentTime}));
+    		// var currentChunk = chunkEndTime.indexOf(prevChunkEndTime);
+    			// await sleep(chunkEndTime - vid.currentTime);
+			// console.log(chunkStartTime, chunkEndTime[currentChunk]);
+			cleanBuffer(chunkStartTime, chunkEndTime);
+			// currentChunk++;
+			chunkStartTime += 10;
+			chunkEndTime += 10;
+        	// }
+        }
+        finally{
 			if(!sourceBuffer.updating){
 				var chunkAppend = new Uint8Array(queue[chunkToPlay])
 				sourceBuffer.appendBuffer(chunkAppend);
 				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
 				console.log(chunkToPlay);
 			}
+        }
 	}else{
 		// Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
 		console.log(queue[chunkToPlay]);
