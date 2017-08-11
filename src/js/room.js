@@ -42,7 +42,7 @@ var offerCreated = false;
 var peerPending = null;
 var lastChunkSplitter;
 var chunkStartTime = 0;
-var chunkEndTime = 10;
+var chunkEndTime = 1;
 var bytesAppended = 0;
 
 console.log(peerID);
@@ -870,13 +870,14 @@ function setupChannel(currentPeer){
 		console.log(peerIDServer);
 		console.log(chunkNum[0]);
 		if(streamSender == 0 && peerPending != null){
-			sendBurstMode(chunkBuffer, chunkNum[0]);
+			var chunkNumOld = new Uint16Array(lastChunkSplitter.slice(1,3));
+			sendBurstMode(lastChunkSplitter, chunkNumOld[0]);
 			lastChunkSplitter = chunkBuffer;
 		}else{
 			if(streamSender == 0){
 				lastChunkSplitter = chunkBuffer;
+				readyChunk(lastChunkSplitter, chunkNum[0]);
 			}
-			readyChunk(lastChunkSplitter, chunkNum[0]);
 		}
 		gotChunk(chunkBuffer ,chunkNum[0]);
 		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
@@ -920,15 +921,15 @@ function appendChunk(queue){
         catch(e){
         	console.log(e);
         	// if (e.name == "QuotaExceededError"){
-    		console.log("clean buffer");
+    		console.log("clean ghgh");
     		// var prevChunkEndTime = Math.max.apply(Math, chunkEndTime.filter(function(x){return x <= vid.currentTime}));
     		// var currentChunk = chunkEndTime.indexOf(prevChunkEndTime);
     			// await sleep(chunkEndTime - vid.currentTime);
 			// console.log(chunkStartTime, chunkEndTime[currentChunk]);
 			cleanBuffer(chunkStartTime, chunkEndTime);
 			// currentChunk++;
-			chunkStartTime += 10;
-			chunkEndTime += 10;
+			chunkStartTime += 1;
+			chunkEndTime += 1;
         	// }
         }
         finally{
