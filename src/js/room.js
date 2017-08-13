@@ -38,6 +38,12 @@ var avatarPath = "../img/default_avatar.png";
 var peerAlias = document.getElementById("peer-alias");
 var alias;
 var aliasList = [];
+var offerCreated = false;
+var peerPending = null;
+var lastChunkSplitter;
+var chunkStartTime = 0;
+var chunkEndTime = 1;
+var bytesAppended = 0;
 
 console.log(peerID);
 
@@ -64,6 +70,7 @@ window.onbeforeunload = function exitPeer(){
 			peerChannel[currentPeer].send(JSON.stringify({"peerID": alias, "exitPeer": true, "peerIDServer": peerIDServer}));
 		}
 	});
+	signalServer.send(JSON.stringify({"exitPeer": true, "peerIDServer": peerIDServer}));
 }
 
 generateURL();
@@ -446,9 +453,15 @@ function onFragment(_) {
         var nextBufferStart = mp4box.appendBuffer(ab);
             
         console.log("7.source buffer appendBuffer start:"); 
-        console.log(initializeSegments[0].buffer);
-        sourceBuffer.appendBuffer(initializeSegments[0].buffer); 
-        readyChunk(initializeSegments[0].buffer, 0);
+        try{
+            console.log(initializeSegments[0].buffer);
+	        sourceBuffer.appendBuffer(initializeSegments[0].buffer); 
+	        readyChunk(initializeSegments[0].buffer, 0);
+        }
+        catch(e){
+        	console.log("codec not supported");
+        	Materialize.toast("Codec not supported. Kindly choose another file to stream", 4000);
+        }
     };
     console.log("1.on send"); 
 }
@@ -523,6 +536,11 @@ function initiatePeerConnection(currentPeer, callback){
 	console.log(peerConnection[currentPeer]);
 	console.log(currentPeer);
 
+	navigator.getUserMedia(constraints, function(stream){
+		localStream = stream;
+		console.log(localStream);
+		gotLocalStream(localStream, currentPeer);
+	}, fallbackUserMedia);
 
 	peerConnection[currentPeer].onicecandidate = function(evt){
 		console.log("ice candidate");
@@ -548,11 +566,6 @@ function initiatePeerConnection(currentPeer, callback){
 	// console.log(localStream);
 	// peerConnection[currentPeer].addStream(localStream);
 	// peerConnection[currentPeer].ontrack = gotRemoteStream;
-	navigator.getUserMedia(constraints, function(stream){
-		localStream = stream;
-		console.log(localStream);
-		gotLocalStream(localStream, currentPeer);
-	}, fallbackUserMedia);
 
 	peerConnection[currentPeer].ontrack = function(e){
 		console.log("on track");
@@ -569,8 +582,8 @@ function sendOffer(){
 }
 
 // Create Local description for a new peer in the room(Generate Local description containing session description protocol)
-function createLocalDescription(offer){
-	peerConnection[currentPeer].setLocalDescription(offer)
+function createLocalDescription(answer){
+	peerConnection[currentPeer].setLocalDescription(answer)
 	.then(function(){
 		console.log("offer sent to "+currentPeer.toString());
 		console.log(peerID);
@@ -610,10 +623,11 @@ function gotMessageFromServer(message) {
 		};
 
 		var peerMediaVideo = document.getElementById("user-media-"+peerID);
-		if(peerMediaVideo.nodeName == "VIDEO"){
+		if(peerMediaVideo.nodeName == "VIDEO"){  
 			window.localStream.getTracks().forEach(
 				function(track) {
 					console.log("adding stream to "+currentPeer);
+					console.log(track.id);
 					console.log(peerConnection[currentPeer]);
 					peerConnection[currentPeer].addTrack(
 						track,
@@ -628,10 +642,14 @@ function gotMessageFromServer(message) {
     }
 
     if(message.sessionDescriptionProtocol) {
-        peerConnection[currentPeer].setRemoteDescription(new RTCSessionDescription(message.sessionDescriptionProtocol), function() {
+    		console.log(message.sessionDescriptionProtocol.type)
             if(message.sessionDescriptionProtocol.type == 'offer') {
-                peerConnection[currentPeer].createAnswer().then(function(offer){
-                	createLocalDescription(offer);
+        		peerConnection[currentPeer].setRemoteDescription(message.sessionDescriptionProtocol)
+        		.then(function(){
+        		    return peerConnection[currentPeer].createAnswer();
+        		})
+        		.then(function(answer){
+                	createLocalDescription(answer);
                 })
                 .catch(logError)
             }else{
@@ -640,10 +658,10 @@ function gotMessageFromServer(message) {
             	.catch(logError);
             }
 
-        });
+        // });
     } else if(message.candidate) {
     	console.log("adding");
-        peerConnection[currentPeer].addIceCandidate(new RTCIceCandidate(message.candidate));
+        peerConnection[currentPeer].addIceCandidate(message.candidate);
     	console.log("added");
     }
 
@@ -705,8 +723,8 @@ function sendChunk(chunk){
 
 	if(senderID == 0){ // round robin when splitter sends the chunk
 		peerIndex = (chunkNum)%(peerConnections.length);
+		console.log(peerIndex);
 		try{
-			console.log(peerChannel);
 			console.log(peerChannel[peerConnections[peerIndex]]);
 			console.log(chunk.slice(1,2)[0]);
 			peerChannel[peerConnections[peerIndex]].send(chunk);
@@ -717,27 +735,33 @@ function sendChunk(chunk){
 		}
 	}else{ // when peer transmits their share of chunks to all other peers
 
-		var peerIndex = 0;
-		for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
-			console.log(peerIndex);
-			if(peerConnections[peerIndex] == 0){
-				console.log("peer is host");
-				peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+		if(peerPending == null){
+			peerPending = peerConnections[1];
+		}
+		var peerIndex = peerConnection.indexOf(peerPending);
+		// for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
+			// console.log(peerIndex);
+		if(peerPending == 0){
+			console.log("peer is host");
+			peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+		}
+		console.log(peerPending);
+		if (peerPending!=0 && peerPending!=senderID){ // So that the chunk doesn't go to the host or the sender
+			console.log("trying to send chunk");
+			try{
+				console.log(peerChannel);
+				console.log(peerChannel[peerPending]);
+				console.log(chunk.slice(1,2)[0]);
+				peerChannel[peerPending].send(chunk);
 			}
-			console.log(peerConnections[peerIndex]);
-			if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
-				console.log("trying to send chunk");
-				try{
-					console.log(peerChannel);
-					console.log(peerChannel[peerConnections[peerIndex]]);
-					console.log(chunk.slice(1,2)[0]);
-					peerChannel[peerConnections[peerIndex]].send(chunk);
-				}
-				catch(e){
-					console.log(e);
-					Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
-				}
+			catch(e){
+				console.log(e);
+				Materialize.toast("The peer with ID "+peerPending+" has left!", 2000);
 			}
+		}
+
+		if(peerConnections.indexOf(peerPending) == (peerConnections.length - 1)){
+			peerPending = null;
 		}
 	}
 	// peerIndex=(chunkNum+peerIndex+1)%(peerConnections.length);
@@ -763,7 +787,8 @@ function readyChunk(chunk, updateCount){
 		console.log(streamMessage.slice(1,3)[0])
 		streamMessage.set(chunkBuffer, 3);
 
-		if(peerConnections.length>0){
+		if(peerConnections.length>1 || peerIDServer == 0){
+			console.log(peerConnections);
 			sendChunk(streamMessage);
 		}	
 }
@@ -816,8 +841,12 @@ function setupChannel(currentPeer){
 
 			if(message.exitPeer){
 				Materialize.toast(message.peerID+' said goodbye!', 3000);
-				var peerIndex = peerConnections.indexOf(message.peerIDServer)
+				var peerIndex = peerConnections.indexOf(message.peerIDServer);
+				var exitPeerMedia = document.getElementById("user-media-"+message.peerIDServer);
+				exitPeerMedia.parentNode.parentNode.removeChild(exitPeerMedia.parentNode);
 				peerConnections.splice(peerIndex, 1);
+				var peerNumUpdated = 1+peerConnections.length;
+				peerNum.innerHTML = "<b>"+peerNumUpdated.toString()+"</b>";
 			}
 
 			if(message.aliasList){
@@ -840,7 +869,16 @@ function setupChannel(currentPeer){
 		senderID[0] = peerIDServer;
 		console.log(peerIDServer);
 		console.log(chunkNum[0]);
-		readyChunk(chunkBuffer, chunkNum[0]);
+		if(streamSender == 0 && peerPending != null){
+			var chunkNumOld = new Uint16Array(lastChunkSplitter.slice(1,3));
+			sendBurstMode(lastChunkSplitter, chunkNumOld[0]);
+			lastChunkSplitter = chunkBuffer;
+		}else{
+			if(streamSender == 0){
+				lastChunkSplitter = chunkBuffer;
+				readyChunk(lastChunkSplitter, chunkNum[0]);
+			}
+		}
 		gotChunk(chunkBuffer ,chunkNum[0]);
 		// var newStreamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
@@ -871,12 +909,37 @@ function appendChunk(queue){
 	if (queue[chunkToPlay]!=null){
 		$("#video-stream").LoadingOverlay("hide", true);
 		console.log("trying to play");
+		try{
+			if(!sourceBuffer.updating){
+				var chunkAppend = new Uint8Array(queue[chunkToPlay])
+				sourceBuffer.appendBuffer(chunkAppend);
+				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
+				console.log(chunkToPlay);
+				// chunkEndTime[updateCount] = bytesAppended*(durationInSeconds/videoFile.size)
+			}
+		}
+        catch(e){
+        	console.log(e);
+        	// if (e.name == "QuotaExceededError"){
+    		console.log("clean ghgh");
+    		// var prevChunkEndTime = Math.max.apply(Math, chunkEndTime.filter(function(x){return x <= vid.currentTime}));
+    		// var currentChunk = chunkEndTime.indexOf(prevChunkEndTime);
+    			// await sleep(chunkEndTime - vid.currentTime);
+			// console.log(chunkStartTime, chunkEndTime[currentChunk]);
+			cleanBuffer(chunkStartTime, chunkEndTime);
+			// currentChunk++;
+			chunkStartTime += 1;
+			chunkEndTime += 1;
+        	// }
+        }
+        finally{
 			if(!sourceBuffer.updating){
 				var chunkAppend = new Uint8Array(queue[chunkToPlay])
 				sourceBuffer.appendBuffer(chunkAppend);
 				chunkToPlay = (chunkToPlay+1)%maxQueueSize;
 				console.log(chunkToPlay);
 			}
+        }
 	}else{
 		// Materialize.toast("Buffering! Waiting for chunk to arrive", 1000);
 		console.log(queue[chunkToPlay]);
@@ -915,6 +978,7 @@ function gotLocalStream(localStream, currentPeer){
 		window.localStream.getTracks().forEach(
 			function(track) {
 				console.log("adding stream to "+currentPeer);
+				console.log(track.id);
 				console.log(peerConnection[currentPeer]);
 				peerConnection[currentPeer].addTrack(
 					track,
@@ -929,8 +993,22 @@ function gotLocalStream(localStream, currentPeer){
 // gotRemoteStream called two times on addition of both audio and video tracks
 function gotRemoteStream(event){ 
 	console.log(event.track.kind);
+	console.log(event.track.id);
 	var peerMediaVideo;
 	// Removing the new temporary div(if made) made during setting up data channel
+
+	// var peerMediaElements = document.getElementById("peer-media-banner");
+	// var peerMediaDiv = document.createElement("div");
+	// peerMediaVideo = document.createElement("video");
+	// peerMediaVideo.autoplay = true;
+	// peerMediaVideo.setAttribute("class", "z-depth-5");
+	// peerMediaVideo.setAttribute("height", "150");
+	// peerMediaVideo.id = "user-media-"+currentPeer;
+	// peerMediaDiv.setAttribute("class", "col s4");
+	// peerMediaDiv.appendChild(peerMediaVideo); 
+	// peerMediaElements.appendChild(peerMediaDiv);
+	// peerMediaVideo.srcObject = event.streams[0];
+
 	if(event.track.kind == "audio"){ // To avoid making two separate elements
 		try{
 			console.log("removing");
@@ -956,6 +1034,7 @@ function gotRemoteStream(event){
 	}else{
 		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
 		console.log(peerMediaVideo);
+		peerMediaVideo.autoplay = true;
 		peerMediaVideo.srcObject = event.streams[0];
 	}
 }
@@ -1014,4 +1093,50 @@ function setAlias(){
 
 function enableInput(){
 	peerAlias.removeAttribute('disabled');
+}
+
+function sendBurstMode(chunk, updateCount){
+	var stream = chunk;
+	var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
+	var senderID = new Uint8Array(1);
+	var chunkNum = new Uint8Array(2);
+	var chunkBuffer = new Uint8Array(stream);
+	var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
+
+	senderID[0] = peerIDServer;
+	console.log(updateCount);
+	chunkNum[0] = updateCount+bufferCounter;
+	chunkNum[1] = updateCount+bufferCounter>>8;
+	console.log(senderID);
+
+	streamMessage.set(senderID, 0);
+	streamMessage.set(chunkNum, 1);
+	console.log(streamMessage.slice(1,3)[0])
+	streamMessage.set(chunkBuffer, 3);
+
+	var peerIndex = peerConnections.indexOf(peerPending);
+	for(peerIndex = peerConnections.indexOf(peerPending); peerIndex<peerConnections.length; peerIndex++){
+		console.log(peerIndex);
+		if(peerConnections[peerIndex] == 0){
+			console.log("peer is host");
+			peerIndex=(peerIndex+1)%(peerConnections.length); // such that (chunkNum+peerIndex)%(peerConnections.length+1) = 0
+		}
+		console.log(peerConnections[peerIndex]);
+		if (peerConnections[peerIndex]!=0 && peerConnections[peerIndex]!=senderID){ // So that the chunk doesn't go to the host or the sender
+			console.log("trying to send chunk");
+			try{
+				console.log(peerChannel);
+				console.log(peerChannel[peerConnections[peerIndex]]);
+				console.log(chunk.slice(1,2)[0]);
+				peerChannel[peerConnections[peerIndex]].send(streamMessage);
+			}
+			catch(e){
+				console.log(e);
+				Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
+			}
+		}
+	}
+	peerPending = null;
+	// lastChunkSplitter = chunk;
+
 }
