@@ -737,6 +737,9 @@ function sendChunk(chunk){
 
 		if(peerPending == null){
 			peerPending = peerConnections[1];
+			if(peerPending == peerIDServer){
+				peerPending = peerConnections[2];
+			}
 		}
 		var peerIndex = peerConnection.indexOf(peerPending);
 		// for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
@@ -762,6 +765,8 @@ function sendChunk(chunk){
 
 		if(peerConnections.indexOf(peerPending) == (peerConnections.length - 1)){
 			peerPending = null;
+		}else{
+			peerPending = peerConnections[peerIndex+1];
 		}
 	}
 	// peerIndex=(chunkNum+peerIndex+1)%(peerConnections.length);
@@ -769,28 +774,28 @@ function sendChunk(chunk){
 
 // function only used by the host peer
 function readyChunk(chunk, updateCount){
-		var stream = chunk;
-		var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
-		var senderID = new Uint8Array(1);
-		var chunkNum = new Uint8Array(2);
-		var chunkBuffer = new Uint8Array(stream);
-		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
+	var stream = chunk;
+	var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
+	var senderID = new Uint8Array(1);
+	var chunkNum = new Uint8Array(2);
+	var chunkBuffer = new Uint8Array(stream);
+	var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
-		senderID[0] = peerIDServer;
-		console.log(updateCount);
-		chunkNum[0] = updateCount+bufferCounter;
-		chunkNum[1] = updateCount+bufferCounter>>8;
-		console.log(senderID);
+	senderID[0] = peerIDServer;
+	console.log(updateCount);
+	chunkNum[0] = updateCount+bufferCounter;
+	chunkNum[1] = updateCount+bufferCounter>>8;
+	console.log(senderID);
 
-		streamMessage.set(senderID, 0);
-		streamMessage.set(chunkNum, 1);
-		console.log(streamMessage.slice(1,3)[0])
-		streamMessage.set(chunkBuffer, 3);
+	streamMessage.set(senderID, 0);
+	streamMessage.set(chunkNum, 1);
+	console.log(streamMessage.slice(1,3)[0])
+	streamMessage.set(chunkBuffer, 3);
 
-		if(peerConnections.length>1 || peerIDServer == 0){
-			console.log(peerConnections);
-			sendChunk(streamMessage);
-		}	
+	if(peerConnections.length>1 || peerIDServer == 0){
+		console.log(peerConnections);
+		sendChunk(streamMessage);
+	}	
 }
 
 // setting up channel to transmit data betweeen the peers
@@ -907,6 +912,7 @@ function gotChunk(chunk, chunkNum){
 function appendChunk(queue){
 	console.log(chunkToPlay);
 	if (queue[chunkToPlay]!=null){
+		console.log(queue[chunkToPlay]);
 		$("#video-stream").LoadingOverlay("hide", true);
 		console.log("trying to play");
 		try{
