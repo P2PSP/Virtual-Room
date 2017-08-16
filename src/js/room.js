@@ -44,6 +44,8 @@ var lastChunkSplitter;
 var chunkStartTime = 0;
 var chunkEndTime = 1;
 var bytesAppended = 0;
+var sourceBufferAudio;
+var pauseToast;
 
 console.log(peerID);
 
@@ -829,9 +831,13 @@ function setupChannel(currentPeer){
 						addPauseListener();
 					};
 					vid.pause();
-					Materialize.toast(message.peerID+" paused the video", 2000);
-			
+					pauseToast = Materialize.toast(message.peerID+" paused the video", "pause-video");
+					// var $toastContent = $('<span> paused the video</span>').add($('<button class="btn-flat toast-action">Undo</button>'));
+					// Materialize.toast($toastContent);
 				}else{
+					var toastElement = $('.toast').first()[0];
+					console.log(toastElement);
+					toastElement.remove();
 					vid.onplay = function(){};
 					vid.play()
 					.then(function(){
