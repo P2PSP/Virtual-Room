@@ -92,6 +92,9 @@ function addPauseListener(){
 // add play listener to the video player
 function addPlayListener(){
     vid.onplay = function(){
+		var toastElement = $('.toast').first()[0];
+		console.log(toastElement);
+		toastElement.remove();
     	var event = "play";
     	vidPlayBack(event);
     }
@@ -835,9 +838,14 @@ function setupChannel(currentPeer){
 					// var $toastContent = $('<span> paused the video</span>').add($('<button class="btn-flat toast-action">Undo</button>'));
 					// Materialize.toast($toastContent);
 				}else{
-					var toastElement = $('.toast').first()[0];
-					console.log(toastElement);
-					toastElement.remove();
+					try{
+						var toastElement = $('.toast').first()[0];
+						console.log(toastElement);
+						toastElement.remove();
+					}
+					catch(e){
+						console.log(e); // if the peer plays by humself and has no previous toasts
+					}
 					vid.onplay = function(){};
 					vid.play()
 					.then(function(){
