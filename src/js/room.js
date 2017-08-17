@@ -92,9 +92,16 @@ function addPauseListener(){
 // add play listener to the video player
 function addPlayListener(){
     vid.onplay = function(){
-		var toastElement = $('.toast').first()[0];
-		console.log(toastElement);
-		toastElement.remove();
+    	try{
+			var toastElement = $('.toast').first()[0];
+			console.log(toastElement);
+			console.log($('.toast'));
+			toastElement.remove();
+			$('.toast').remove();
+		}
+		catch(e){
+			console.log(e);
+		}
     	var event = "play";
     	vidPlayBack(event);
     }
@@ -842,9 +849,10 @@ function setupChannel(currentPeer){
 						var toastElement = $('.toast').first()[0];
 						console.log(toastElement);
 						toastElement.remove();
+						$('.toast').remove();
 					}
 					catch(e){
-						console.log(e); // if the peer plays by humself and has no previous toasts
+						console.log(e); // if the peer plays by himself and has no previous toasts
 					}
 					vid.onplay = function(){};
 					vid.play()
@@ -1159,4 +1167,18 @@ function sendBurstMode(chunk, updateCount){
 	peerPending = null;
 	// lastChunkSplitter = chunk;
 
+}
+
+function stopWebCam(){
+	navigator.getUserMedia({'video': true},function(stream){
+		var track = stream.getTracks()[0];
+		track.stop;
+	},fallbackUserMedia())
+}
+
+function stopAudio(){
+	navigator.getUserMedia({'audio': true}, function(stream){
+		var track = stream.getTracks()[0];
+		track.stop;
+	})
 }
