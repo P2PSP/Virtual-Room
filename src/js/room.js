@@ -1170,15 +1170,29 @@ function sendBurstMode(chunk, updateCount){
 }
 
 function stopWebCam(){
-	navigator.getUserMedia({'video': true},function(stream){
-		var track = stream.getTracks()[0];
-		track.stop;
-	},fallbackUserMedia())
+	var btn = document.getElementById("stop-video");
+	navigator.getUserMedia(constraints,function(stream){
+		var track = window.localStream.getTracks()[1];
+		if(btn.innerText == "Stop Webcam"){
+			track.enabled = false;
+			btn.innerText = "Start Webcam";
+		}else{
+			track.enabled = true;
+			btn.innerText = "Stop Webcam";
+		}
+	},fallbackUserMedia)
 }
 
 function stopAudio(){
-	navigator.getUserMedia({'audio': true}, function(stream){
-		var track = stream.getTracks()[0];
-		track.stop;
-	})
+	var btn = document.getElementById("stop-audio");
+	navigator.getUserMedia(constraints, function(stream){
+		var track = window.localStream.getTracks()[0];
+		if(btn.innerText == "Stop Audio"){
+			track.enabled = false;
+			btn.innerText = "Start Audio";
+		}else{
+			track.enabled = true;
+			btn.innerText = "Stop Audio";
+		}
+	},fallbackUserMedia)
 }
