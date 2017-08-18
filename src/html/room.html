@@ -15,8 +15,8 @@
   <nav class="grey darken-4 lighten-1" role="navigation">
     <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
       <ul class="right hide-on-med-and-down">
-        <li onclick="stopWebCam()"><a href="#"><span id="stop-video" class="white-text text-darken-2">Stop Webcam</span></a></li>
-        <li onclick="stopAudio()"><a href="#"><span id="stop-audio" class="white-text text-darken-2">Stop Audio</span></a></li>
+        <li onclick="stopWebCam()"><a href="#"><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
+        <li onclick="stopAudio()"><a href="#"><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
         <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2">Leave Room</span></a></li>
       </ul>
       <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
@@ -60,10 +60,10 @@
 
 <!-- Peer controls of the room -->
   <div class="container valign-wrapper col s12">
-      <div class="container col s6 pull-s1">
-          <h5 class="row">Room URL</h5>
+      <div class="container col s6 valign-wrapper">
+          <h5 class="row">Share Room</h5>
             <div class="valign-wrapper">
-              <div class="col s2 push-s10"><a href="#" onclick="copyBroadcastURL()">
+              <div class="col s2 push-s11"><a href="#" onclick="copyBroadcastURL()">
                 <i class="small material-icons">input</i>
               </a></div>
               <div class="col s10 pull-s1">
@@ -71,13 +71,13 @@
               </div>
             </div>
         </div>
-        <div class="valign-wrapper row col s6">
-          <div class="col s2 push-s3">
+        <div class="valign-wrapper row col s6 push-s2">
+          <div class="col s10">
+            <h5 class="grey-text">peer(s): </h5>
+          </div>          
+          <div class="col s2 pull-s4">
             <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
           </div>
-          <div class="col s10">
-            <h5 class="grey-text">peer(s) in the room</h5>
-          </div>          
         </div>
          
         </div>

@@ -1,5 +1,5 @@
 <?php
-if (preg_match('/room\/new\/[0-9A-Fa-f]*/', $_SERVER["REQUEST_URI"])) {
+if (preg_match('/room\/[0-9A-Fa-f]*/', $_SERVER["REQUEST_URI"])) {
     include __DIR__ . '/../src/html/room.html';
 }else if(preg_match('/room\/room.html/', $_SERVER["REQUEST_URI"])){
       include __DIR__ . '/../src/html/room.html';

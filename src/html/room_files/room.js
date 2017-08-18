@@ -1172,11 +1172,8 @@ function stopWebCam(){
 	var btn = document.getElementById("stop-video");
 	navigator.getUserMedia(constraints,function(stream){
 		var track = window.localStream.getTracks()[1];
-		console.log(btn.innerHTML);
-		if(btn.innerHTML == '<i class="small material-icons">'+"videocam"+"</i>"){
+		if(btn.innerText == "Stop Webcam"){
 			track.enabled = false;
-			console.log(track);
-			console.log(track.muted);
 			var peerMediaVideo = document.getElementById("user-media-"+peerID);
 
 			var peerMediaVideoStop = document.createElement("img");
@@ -1188,7 +1185,7 @@ function stopWebCam(){
 			peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
 
 			// peerMediaVideo.src = avatarPath;
-			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam_off"+"</i>";
+			btn.innerText = "Start Webcam";
 		}else{
 			track.enabled = true;
 
@@ -1202,7 +1199,7 @@ function stopWebCam(){
 			var peerMediaVideoStop = document.getElementById("user-media-"+peerID+"-stop");
 			peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
 			peerMediaVideo.srcObject = window.localStream;
-			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam"+"</i>";
+			btn.innerText = "Stop Webcam";
 		}
 	},fallbackUserMedia)
 }
@@ -1211,14 +1208,26 @@ function stopAudio(){
 	var btn = document.getElementById("stop-audio");
 	navigator.getUserMedia(constraints, function(stream){
 		var track = window.localStream.getTracks()[0];
-		console.log(btn.innerHTML);
-		if(btn.innerHTML == '<i class="small material-icons">'+"volume_up"+"</i>"){
-			console.log("hi");
+		if(btn.innerText == "Stop Audio"){
 			track.enabled = false;
-			btn.innerHTML = '<i class="small material-icons">'+"volume_off"+"</i>";
+			btn.innerText = "Start Audio";
 		}else{
 			track.enabled = true;
-			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"volume_up"+"</i>";
+			btn.innerText = "Stop Audio";
 		}
 	},fallbackUserMedia)
+}
+
+function testStream(){
+	var peerMediaVideos = document.getElementById("user-media-"+"1");
+	var stream = peerMediaVideos.srcObject
+	console.log(stream);
+	var peerMediaVideo = document.createElement("video");
+	peerMediaVideo.setAttribute("class", "z-depth-5");
+	peerMediaVideo.setAttribute("height", "150");
+	peerMediaVideo.autoplay = true;
+	peerMediaVideo.id = "user-media-"+"1"+" test";
+	peerMediaVideo.srcObject = stream;
+	var peerMediaVideoOb = document.getElementById("user-media-"+peerID);
+	peerMediaVideoOb.parentNode.appendChild(peerMediaVideo);
 }
