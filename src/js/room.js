@@ -532,7 +532,7 @@ function fallbackUserMedia(){
 	peerMediaVideo.autoplay = true;
 	peerMediaVideo.setAttribute("height", "150");
 	peerMediaVideo.src = avatarPath;
-	window.localStream = localStream
+	window.localStream = localStream;
 	peerMediaVideo.id = "user-media-"+peerID;
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
@@ -934,7 +934,6 @@ function gotChunk(chunk, chunkNum){
 function appendChunk(queue){
 	console.log(chunkToPlay);
 	if (queue[chunkToPlay]!=null){
-		console.log(queue[chunkToPlay]);
 		$("#video-stream").LoadingOverlay("hide", true);
 		console.log("trying to play");
 		try{
@@ -1175,9 +1174,31 @@ function stopWebCam(){
 		var track = window.localStream.getTracks()[1];
 		if(btn.innerText == "Stop Webcam"){
 			track.enabled = false;
+			var peerMediaVideo = document.getElementById("user-media-"+peerID);
+
+			var peerMediaVideoStop = document.createElement("img");
+			peerMediaVideoStop.setAttribute("class", "z-depth-5");
+			peerMediaVideoStop.setAttribute("height", "150");
+			peerMediaVideoStop.src = avatarPath;
+			peerMediaVideoStop.id = "user-media-"+peerID+"-stop";
+
+			peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
+
+			// peerMediaVideo.src = avatarPath;
 			btn.innerText = "Start Webcam";
 		}else{
 			track.enabled = true;
+
+			var peerMediaVideo = document.createElement("video");
+			peerMediaVideo.setAttribute("class", "z-depth-5");
+			peerMediaVideo.setAttribute("height", "150");
+			peerMediaVideo.autoplay = true;
+			peerMediaVideo.id = "user-media-"+peerID;
+
+			console.log(peerMediaVideo);
+			var peerMediaVideoStop = document.getElementById("user-media-"+peerID+"-stop");
+			peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
+			peerMediaVideo.srcObject = window.localStream;
 			btn.innerText = "Stop Webcam";
 		}
 	},fallbackUserMedia)
