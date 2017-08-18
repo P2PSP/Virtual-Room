@@ -15,6 +15,8 @@
   <nav class="grey darken-4 lighten-1" role="navigation">
     <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
       <ul class="right hide-on-med-and-down">
+        <li onclick="stopWebCam()"><a href="#"><span id="stop-video" class="white-text text-darken-2">Stop Webcam</span></a></li>
+        <li onclick="stopAudio()"><a href="#"><span id="stop-audio" class="white-text text-darken-2">Stop Audio</span></a></li>
         <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2">Leave Room</span></a></li>
       </ul>
       <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>

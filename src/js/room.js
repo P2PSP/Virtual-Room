@@ -44,6 +44,8 @@ var lastChunkSplitter;
 var chunkStartTime = 0;
 var chunkEndTime = 1;
 var bytesAppended = 0;
+var sourceBufferAudio;
+var pauseToast;
 
 console.log(peerID);
 
@@ -90,6 +92,16 @@ function addPauseListener(){
 // add play listener to the video player
 function addPlayListener(){
     vid.onplay = function(){
+    	try{
+			var toastElement = $('.toast').first()[0];
+			console.log(toastElement);
+			console.log($('.toast'));
+			toastElement.remove();
+			$('.toast').remove();
+		}
+		catch(e){
+			console.log(e);
+		}
     	var event = "play";
     	vidPlayBack(event);
     }
@@ -520,7 +532,7 @@ function fallbackUserMedia(){
 	peerMediaVideo.autoplay = true;
 	peerMediaVideo.setAttribute("height", "150");
 	peerMediaVideo.src = avatarPath;
-	window.localStream = localStream
+	window.localStream = localStream;
 	peerMediaVideo.id = "user-media-"+peerID;
 	peerMediaDiv.setAttribute("class", "col s4");
 	peerMediaDiv.appendChild(peerMediaVideo); 
@@ -737,6 +749,9 @@ function sendChunk(chunk){
 
 		if(peerPending == null){
 			peerPending = peerConnections[1];
+			if(peerPending == peerIDServer){
+				peerPending = peerConnections[2];
+			}
 		}
 		var peerIndex = peerConnection.indexOf(peerPending);
 		// for(peerIndex = 0; peerIndex<peerConnections.length; peerIndex++){
@@ -762,6 +777,8 @@ function sendChunk(chunk){
 
 		if(peerConnections.indexOf(peerPending) == (peerConnections.length - 1)){
 			peerPending = null;
+		}else{
+			peerPending = peerConnections[peerIndex+1];
 		}
 	}
 	// peerIndex=(chunkNum+peerIndex+1)%(peerConnections.length);
@@ -769,28 +786,28 @@ function sendChunk(chunk){
 
 // function only used by the host peer
 function readyChunk(chunk, updateCount){
-		var stream = chunk;
-		var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
-		var senderID = new Uint8Array(1);
-		var chunkNum = new Uint8Array(2);
-		var chunkBuffer = new Uint8Array(stream);
-		var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
+	var stream = chunk;
+	var bufferCounter = 0; // to add 1 to the chunkNum when the count number reaches 256 in appendCount, we have to leave queue[0] as it is, since it contains user.segmentIndex of fragmeneted video
+	var senderID = new Uint8Array(1);
+	var chunkNum = new Uint8Array(2);
+	var chunkBuffer = new Uint8Array(stream);
+	var streamMessage = new Uint8Array(chunkBuffer.byteLength + chunkNum.byteLength + senderID.byteLength);
 
-		senderID[0] = peerIDServer;
-		console.log(updateCount);
-		chunkNum[0] = updateCount+bufferCounter;
-		chunkNum[1] = updateCount+bufferCounter>>8;
-		console.log(senderID);
+	senderID[0] = peerIDServer;
+	console.log(updateCount);
+	chunkNum[0] = updateCount+bufferCounter;
+	chunkNum[1] = updateCount+bufferCounter>>8;
+	console.log(senderID);
 
-		streamMessage.set(senderID, 0);
-		streamMessage.set(chunkNum, 1);
-		console.log(streamMessage.slice(1,3)[0])
-		streamMessage.set(chunkBuffer, 3);
+	streamMessage.set(senderID, 0);
+	streamMessage.set(chunkNum, 1);
+	console.log(streamMessage.slice(1,3)[0])
+	streamMessage.set(chunkBuffer, 3);
 
-		if(peerConnections.length>1 || peerIDServer == 0){
-			console.log(peerConnections);
-			sendChunk(streamMessage);
-		}	
+	if(peerConnections.length>1 || peerIDServer == 0){
+		console.log(peerConnections);
+		sendChunk(streamMessage);
+	}	
 }
 
 // setting up channel to transmit data betweeen the peers
@@ -824,9 +841,19 @@ function setupChannel(currentPeer){
 						addPauseListener();
 					};
 					vid.pause();
-					Materialize.toast(message.peerID+" paused the video", 2000);
-			
+					pauseToast = Materialize.toast(message.peerID+" paused the video", "pause-video");
+					// var $toastContent = $('<span> paused the video</span>').add($('<button class="btn-flat toast-action">Undo</button>'));
+					// Materialize.toast($toastContent);
 				}else{
+					try{
+						var toastElement = $('.toast').first()[0];
+						console.log(toastElement);
+						toastElement.remove();
+						$('.toast').remove();
+					}
+					catch(e){
+						console.log(e); // if the peer plays by himself and has no previous toasts
+					}
 					vid.onplay = function(){};
 					vid.play()
 					.then(function(){
@@ -1139,4 +1166,54 @@ function sendBurstMode(chunk, updateCount){
 	peerPending = null;
 	// lastChunkSplitter = chunk;
 
+}
+
+function stopWebCam(){
+	var btn = document.getElementById("stop-video");
+	navigator.getUserMedia(constraints,function(stream){
+		var track = window.localStream.getTracks()[1];
+		if(btn.innerText == "Stop Webcam"){
+			track.enabled = false;
+			var peerMediaVideo = document.getElementById("user-media-"+peerID);
+
+			var peerMediaVideoStop = document.createElement("img");
+			peerMediaVideoStop.setAttribute("class", "z-depth-5");
+			peerMediaVideoStop.setAttribute("height", "150");
+			peerMediaVideoStop.src = avatarPath;
+			peerMediaVideoStop.id = "user-media-"+peerID+"-stop";
+
+			peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
+
+			// peerMediaVideo.src = avatarPath;
+			btn.innerText = "Start Webcam";
+		}else{
+			track.enabled = true;
+
+			var peerMediaVideo = document.createElement("video");
+			peerMediaVideo.setAttribute("class", "z-depth-5");
+			peerMediaVideo.setAttribute("height", "150");
+			peerMediaVideo.autoplay = true;
+			peerMediaVideo.id = "user-media-"+peerID;
+
+			console.log(peerMediaVideo);
+			var peerMediaVideoStop = document.getElementById("user-media-"+peerID+"-stop");
+			peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
+			peerMediaVideo.srcObject = window.localStream;
+			btn.innerText = "Stop Webcam";
+		}
+	},fallbackUserMedia)
+}
+
+function stopAudio(){
+	var btn = document.getElementById("stop-audio");
+	navigator.getUserMedia(constraints, function(stream){
+		var track = window.localStream.getTracks()[0];
+		if(btn.innerText == "Stop Audio"){
+			track.enabled = false;
+			btn.innerText = "Start Audio";
+		}else{
+			track.enabled = true;
+			btn.innerText = "Stop Audio";
+		}
+	},fallbackUserMedia)
 }
