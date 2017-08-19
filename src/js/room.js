@@ -1177,6 +1177,7 @@ function stopWebCam(){
 			track.enabled = false;
 			console.log(track);
 			console.log(track.muted);
+			console.log(window.localStream.getTracks()[0]);
 			var peerMediaVideo = document.getElementById("user-media-"+peerID);
 
 			var peerMediaVideoStop = document.createElement("img");
