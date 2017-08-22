@@ -120,7 +120,7 @@ window.onload = function(){
 // 	preInititiation();
 };
 
-signalServer.onopen = function(){
+signalServer.onopen = function connectSignalServer(){
 	// on connecting to signal server add peer to room/add room 
 	// handling the case of host user to differentiate with normal peers
 	if (peerID == senderID){
@@ -237,7 +237,7 @@ vidFile.onchange = function(){
 		console.log("video stream change");
 		var streambtn = document.getElementById("stream");
 		vid.setAttribute("controls", "");
-	    streambtn.setAttribute("class", "btn-flat waves-effect waves-light red");
+	    streambtn.setAttribute("class", "btn waves-effect waves-light red");
     };
 
 peerAlias.onkeydown = function(){
