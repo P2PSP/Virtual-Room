@@ -6,7 +6,7 @@ var broadcastURL = document.getElementById("broadcast-url");
 var hostURL = window.location.hostname;
 var hostPort = window.location.port;
 var domainURL = "http://" + hostURL + ":" + hostPort;
-var baseURL = domainURL+"/room/new/"; // Will be changed accordingly
+var baseURL = domainURL+"/room/"; // Will be changed accordingly
 var homeURL = domainURL+"/room/welcome/";
 var peerID = 'xxxxxxxx'.replace(/[xy]/g, function(c) {var r = Math.random()*16|0,v=c=='x'?r:r&0x3|0x8;return v.toString(16);}); // Generating UUID(taking only the first section of the string) according to the RFC4122 version 4(https://www.ietf.org/rfc/rfc4122.txt)
 var vidToWindowRatio;
@@ -120,7 +120,7 @@ window.onload = function(){
 // 	preInititiation();
 };
 
-signalServer.onopen = function(){
+signalServer.onopen = function connectSignalServer(){
 	// on connecting to signal server add peer to room/add room 
 	// handling the case of host user to differentiate with normal peers
 	if (peerID == senderID){
@@ -237,7 +237,7 @@ vidFile.onchange = function(){
 		console.log("video stream change");
 		var streambtn = document.getElementById("stream");
 		vid.setAttribute("controls", "");
-	    streambtn.setAttribute("class", "btn-flat waves-effect waves-light red");
+	    streambtn.setAttribute("class", "btn waves-effect waves-light red");
     };
 
 peerAlias.onkeydown = function(){
@@ -1172,8 +1172,12 @@ function stopWebCam(){
 	var btn = document.getElementById("stop-video");
 	navigator.getUserMedia(constraints,function(stream){
 		var track = window.localStream.getTracks()[1];
-		if(btn.innerText == "Stop Webcam"){
+		console.log(btn.innerHTML);
+		if(btn.innerHTML == '<i class="small material-icons">'+"videocam"+"</i>"){
 			track.enabled = false;
+			console.log(track);
+			console.log(track.muted);
+			console.log(window.localStream.getTracks()[0]);
 			var peerMediaVideo = document.getElementById("user-media-"+peerID);
 
 			var peerMediaVideoStop = document.createElement("img");
@@ -1185,7 +1189,7 @@ function stopWebCam(){
 			peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
 
 			// peerMediaVideo.src = avatarPath;
-			btn.innerText = "Start Webcam";
+			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam_off"+"</i>";
 		}else{
 			track.enabled = true;
 
@@ -1199,7 +1203,7 @@ function stopWebCam(){
 			var peerMediaVideoStop = document.getElementById("user-media-"+peerID+"-stop");
 			peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
 			peerMediaVideo.srcObject = window.localStream;
-			btn.innerText = "Stop Webcam";
+			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam"+"</i>";
 		}
 	},fallbackUserMedia)
 }
@@ -1208,12 +1212,14 @@ function stopAudio(){
 	var btn = document.getElementById("stop-audio");
 	navigator.getUserMedia(constraints, function(stream){
 		var track = window.localStream.getTracks()[0];
-		if(btn.innerText == "Stop Audio"){
+		console.log(btn.innerHTML);
+		if(btn.innerHTML == '<i class="small material-icons">'+"volume_up"+"</i>"){
+			console.log("hi");
 			track.enabled = false;
-			btn.innerText = "Start Audio";
+			btn.innerHTML = '<i class="small material-icons">'+"volume_off"+"</i>";
 		}else{
 			track.enabled = true;
-			btn.innerText = "Stop Audio";
+			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"volume_up"+"</i>";
 		}
 	},fallbackUserMedia)
 }

@@ -14,10 +14,10 @@
 <main>
   <nav class="grey darken-4 lighten-1" role="navigation">
     <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
-      <ul class="right hide-on-med-and-down">
-        <li onclick="stopWebCam()"><a href="#"><span id="stop-video" class="white-text text-darken-2">Stop Webcam</span></a></li>
-        <li onclick="stopAudio()"><a href="#"><span id="stop-audio" class="white-text text-darken-2">Stop Audio</span></a></li>
-        <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2">Leave Room</span></a></li>
+      <ul class="right ">
+        <li onclick="stopWebCam()"><a href="#"><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
+        <li onclick="stopAudio()"><a href="#"><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
+        <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
       </ul>
       <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
     </div>
@@ -33,21 +33,21 @@
               <span>File</span>
               <input type="file" id="video-file" accept="video">
             </div>
-            <div class="file-path-wrapper col s5">
+            <div class="file-path-wrapper col m5 l5">
               <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
             </div>
       <div class="col s6">
-        <div class="col s4" onclick="enableInput()">
+        <div class="col l4 m5" onclick="enableInput()">
           <!-- <h5 id="peer-alias">peerID</h5> -->
-          <input class="validate" type="text" id="peer-alias" placeholder="Type your alias in here" >
+          <input class="validate" type="text" id="peer-alias" placeholder="Type your alias" >
         </div>
-        <div class="col s4">
+        <div class="col l4 m4">
           <div class="btn disabled z-depth-3 red darken-4 col s12" onclick="setAlias()" id="alias-btn">
-            <span>Set Alias!</span>
+            <span class="text-1">Set!</span>
           </div>
         </div>
-        <div class="row left col s3 push-s1">
-            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text">Stream!</span></a>
+        <div class="row left col l4 m3 push-l2">
+            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text"><i class="small material-icons">play_arrow</i></span></a>
         </div>
       </div>
       <div class="col s12">
@@ -60,24 +60,24 @@
 
 <!-- Peer controls of the room -->
   <div class="container valign-wrapper col s12">
-      <div class="container col s6 pull-s1">
-          <h5 class="row">Room URL</h5>
+      <div class="container col s6 valign-wrapper">
+          <h5 class="row">Share Room</h5>
             <div class="valign-wrapper">
-              <div class="col s2 push-s10"><a href="#" onclick="copyBroadcastURL()">
-                <i class="small material-icons">input</i>
+              <div class="col s2 push-s11"><a href="#" onclick="copyBroadcastURL()">
+                <i class="small material-icons">content_copy</i>
               </a></div>
               <div class="col s10 pull-s1">
               <p id="broadcast-url" class="grey-text">Click the icon to copy the link to clipboard</p>
               </div>
             </div>
         </div>
-        <div class="valign-wrapper row col s6">
-          <div class="col s2 push-s3">
+        <div class="valign-wrapper row col s6 push-s2">
+          <div class="col s10">
+            <h5 class="grey-text">peer(s): </h5>
+          </div>          
+          <div class="col s2 pull-s4">
             <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
           </div>
-          <div class="col s10">
-            <h5 class="grey-text">peer(s) in the room</h5>
-          </div>          
         </div>
          
         </div>
