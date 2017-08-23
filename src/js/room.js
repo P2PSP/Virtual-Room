@@ -1162,6 +1162,7 @@ function setAlias(){
 				aliasDiv.setAttribute("class", "col s12");
 				var aliasElement = document.createElement("h6");
 				aliasElement.innerText = alias;
+				aliasElement.id = "alias-"+peerID;
 				aliasDiv.appendChild(aliasElement);
 				peerMediaDiv.appendChild(aliasDiv);
 			}
