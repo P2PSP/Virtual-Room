@@ -46,6 +46,7 @@ var chunkEndTime = 1;
 var bytesAppended = 0;
 var sourceBufferAudio;
 var pauseToast;
+var webcamStreams = [];
 
 console.log(peerID);
 
@@ -899,6 +900,31 @@ function setupChannel(currentPeer){
 				}
 			}
 
+			if(message.webcam){
+				console.log(message.webcamStop);
+				if(message.stopStream == true){
+					var peerMediaVideo = document.getElementById("user-media-"+message.peer);
+					var peerMediaVideoStop = document.createElement("img");
+					peerMediaVideoStop.setAttribute("class", "z-depth-5");
+					peerMediaVideoStop.setAttribute("height", "150");
+					peerMediaVideoStop.src = avatarPath;
+					peerMediaVideoStop.id = "user-media-"+message.peer+"-stop";
+	
+					peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);	
+				}else{
+					var peerMediaVideo = document.createElement("video");
+					peerMediaVideo.setAttribute("class", "z-depth-5");
+					peerMediaVideo.setAttribute("height", "150");
+					peerMediaVideo.autoplay = true;
+					peerMediaVideo.id = "user-media-"+message.peer;
+
+					console.log(peerMediaVideo);
+					var peerMediaVideoStop = document.getElementById("user-media-"+message.peer+"-stop");
+					peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
+					peerMediaVideo.srcObject = webcamStreams[message.peer];
+				}
+			}
+
 			return;
 		}
 
@@ -1078,6 +1104,7 @@ function gotRemoteStream(event){
 		peerMediaElements.appendChild(peerMediaDiv);
 	}else{
 		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
+		webcamStreams[currentPeer] = event.streams[0];
 		console.log(peerMediaVideo);
 		peerMediaVideo.autoplay = true;
 		peerMediaVideo.srcObject = event.streams[0];
@@ -1131,9 +1158,12 @@ function setAlias(){
 				aliasElement.innerText = alias;
 			}
 			catch(e){
+				var aliasDiv = document.createElement("div");
+				aliasDiv.setAttribute("class", "col s12");
 				var aliasElement = document.createElement("h6");
 				aliasElement.innerText = alias;
-				peerMediaDiv.appendChild(aliasElement);
+				aliasDiv.appendChild(aliasElement);
+				peerMediaDiv.appendChild(aliasDiv);
 			}
 			peerConnections.map(function(currentPeer){
 				try{
@@ -1217,6 +1247,15 @@ function stopWebCam(){
 
 			peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
 
+			peerConnections.map(function(currentPeer){
+				try{
+					peerChannel[currentPeer].send(JSON.stringify({"webcam": true, "peer": peerIDServer, "stopStream": true}));
+				}
+				catch(e){
+					console.log("error -> "+e);
+				}
+			});
+
 			// peerMediaVideo.src = avatarPath;
 			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam_off"+"</i>";
 		}else{
@@ -1233,6 +1272,14 @@ function stopWebCam(){
 			peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
 			peerMediaVideo.srcObject = window.localStream;
 			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam"+"</i>";
+			peerConnections.map(function(currentPeer){
+				try{
+					peerChannel[currentPeer].send(JSON.stringify({"webcam": true, "peer": peerIDServer, "stopStream": false}));
+				}
+				catch(e){
+					console.log("error -> "+e);
+				}
+			});
 		}
 	},fallbackUserMedia)
 }
