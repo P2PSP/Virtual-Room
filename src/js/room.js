@@ -46,6 +46,7 @@ var chunkEndTime = 1;
 var bytesAppended = 0;
 var sourceBufferAudio;
 var pauseToast;
+var webcamStreams = [];
 
 console.log(peerID);
 
@@ -878,7 +879,50 @@ function setupChannel(currentPeer){
 
 			if(message.aliasList){
 				aliasList = message.aliasList;
-				console.log(aliasList);
+				console.log(message);
+				try{
+					var aliasID = message.aliasChanged;
+					var peerMediaDivTmp = document.getElementById("user-media-"+aliasID).parentNode;
+					try{
+						var aliasElement = document.getElementById("alias-"+aliasID);
+						aliasElement.innerText = aliasList[aliasID];
+					}
+					catch(e){
+						var aliasElement = document.createElement("h6");
+						aliasElement.id = "alias-"+aliasID;
+						aliasElement.innerText = aliasList[aliasID];
+						peerMediaDivTmp.appendChild(aliasElement);
+					}
+					console.log(aliasList);
+				}
+				catch(e){
+					console.log("No new alias set");
+				}
+			}
+
+			if(message.webcam){
+				console.log(message.webcamStop);
+				if(message.stopStream == true){
+					var peerMediaVideo = document.getElementById("user-media-"+message.peer);
+					var peerMediaVideoStop = document.createElement("img");
+					peerMediaVideoStop.setAttribute("class", "z-depth-5");
+					peerMediaVideoStop.setAttribute("height", "150");
+					peerMediaVideoStop.src = avatarPath;
+					peerMediaVideoStop.id = "user-media-"+message.peer+"-stop";
+	
+					peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);	
+				}else{
+					var peerMediaVideo = document.createElement("video");
+					peerMediaVideo.setAttribute("class", "z-depth-5");
+					peerMediaVideo.setAttribute("height", "150");
+					peerMediaVideo.autoplay = true;
+					peerMediaVideo.id = "user-media-"+message.peer;
+
+					console.log(peerMediaVideo);
+					var peerMediaVideoStop = document.getElementById("user-media-"+message.peer+"-stop");
+					peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
+					peerMediaVideo.srcObject = webcamStreams[message.peer];
+				}
 			}
 
 			return;
@@ -1060,6 +1104,7 @@ function gotRemoteStream(event){
 		peerMediaElements.appendChild(peerMediaDiv);
 	}else{
 		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
+		webcamStreams[currentPeer] = event.streams[0];
 		console.log(peerMediaVideo);
 		peerMediaVideo.autoplay = true;
 		peerMediaVideo.srcObject = event.streams[0];
@@ -1103,12 +1148,27 @@ function setAlias(){
 			}
 			alias = peerAlias.value;
 			peerAlias.disabled = true;
-			aliasList.push(alias);
+			aliasList[peerIDServer] = alias;
 			var aliasbtn = document.getElementById('alias-btn');
 			aliasbtn.setAttribute("class", "btn disabled z-depth-3 red darken-4 col s12")
+			selfVid = document.getElementById("user-media-"+peerID);
+			var peerMediaDiv = selfVid.parentNode;
+			try{
+				var aliasElement = document.getElementById("alias-"+peerID);
+				aliasElement.innerText = alias;
+			}
+			catch(e){
+				var aliasDiv = document.createElement("div");
+				aliasDiv.setAttribute("class", "col s12");
+				var aliasElement = document.createElement("h6");
+				aliasElement.innerText = alias;
+				aliasElement.id = "alias-"+peerID;
+				aliasDiv.appendChild(aliasElement);
+				peerMediaDiv.appendChild(aliasDiv);
+			}
 			peerConnections.map(function(currentPeer){
 				try{
-					peerChannel[currentPeer].send(JSON.stringify({"aliasList": aliasList}));
+					peerChannel[currentPeer].send(JSON.stringify({"aliasList": aliasList, "aliasChanged": peerIDServer}));
 				}
 				catch(e){
 					console.log("error -> "+e);
@@ -1188,6 +1248,15 @@ function stopWebCam(){
 
 			peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
 
+			peerConnections.map(function(currentPeer){
+				try{
+					peerChannel[currentPeer].send(JSON.stringify({"webcam": true, "peer": peerIDServer, "stopStream": true}));
+				}
+				catch(e){
+					console.log("error -> "+e);
+				}
+			});
+
 			// peerMediaVideo.src = avatarPath;
 			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam_off"+"</i>";
 		}else{
@@ -1204,6 +1273,14 @@ function stopWebCam(){
 			peerMediaVideoStop.parentNode.replaceChild(peerMediaVideo, peerMediaVideoStop);
 			peerMediaVideo.srcObject = window.localStream;
 			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"videocam"+"</i>";
+			peerConnections.map(function(currentPeer){
+				try{
+					peerChannel[currentPeer].send(JSON.stringify({"webcam": true, "peer": peerIDServer, "stopStream": false}));
+				}
+				catch(e){
+					console.log("error -> "+e);
+				}
+			});
 		}
 	},fallbackUserMedia)
 }

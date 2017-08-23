@@ -314,3 +314,71 @@ Sends the chunk to the appropriate peer using round robin method
 ##### Returns
 
 - `Void`
+
+
+#### readyChunk(chunk, updateCount)
+
+Handles and sets different properties of the chunk such as `senderID`, `chunkNum` before sending it to other peers
+
+
+
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| chunk | `Object`  | - fragmented raw chunk to be sent |
+| updateCount| `Object` | - Chunk number |
+
+
+
+
+
+##### Returns
+
+- `Void`
+
+
+#### setupChannel(currentPeer)
+
+Sets up the data channel established between two peers and updates the peerConnections list. Added event listener for `onmessage` to handle all the messages received on the data channel
+
+
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| currentPeer | `Integer`  | - Server ID of the other peer in data channel  |
+
+
+
+
+
+##### Returns
+
+- `Void`
+
+#### gotChunk(chunk, chunkNum)
+
+Appends the current chunk to media source on receiving a new chunk
+
+
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| chunk | `Object`  | - fragmented chunk to be sent  |
+| chunkNum | `Integer`  | - Chunk Number  |
+
+
+
+
+
+##### Returns
+
+- `Void`
