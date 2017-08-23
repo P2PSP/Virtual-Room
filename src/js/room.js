@@ -878,7 +878,25 @@ function setupChannel(currentPeer){
 
 			if(message.aliasList){
 				aliasList = message.aliasList;
-				console.log(aliasList);
+				console.log(message);
+				try{
+					var aliasID = message.aliasChanged;
+					var peerMediaDivTmp = document.getElementById("user-media-"+aliasID).parentNode;
+					try{
+						var aliasElement = document.getElementById("alias-"+aliasID);
+						aliasElement.innerText = aliasList[aliasID];
+					}
+					catch(e){
+						var aliasElement = document.createElement("h6");
+						aliasElement.id = "alias-"+aliasID;
+						aliasElement.innerText = aliasList[aliasID];
+						peerMediaDivTmp.appendChild(aliasElement);
+					}
+					console.log(aliasList);
+				}
+				catch(e){
+					console.log("No new alias set");
+				}
 			}
 
 			return;
@@ -1103,12 +1121,23 @@ function setAlias(){
 			}
 			alias = peerAlias.value;
 			peerAlias.disabled = true;
-			aliasList.push(alias);
+			aliasList[peerIDServer] = alias;
 			var aliasbtn = document.getElementById('alias-btn');
 			aliasbtn.setAttribute("class", "btn disabled z-depth-3 red darken-4 col s12")
+			selfVid = document.getElementById("user-media-"+peerID);
+			var peerMediaDiv = selfVid.parentNode;
+			try{
+				var aliasElement = document.getElementById("alias-"+peerID);
+				aliasElement.innerText = alias;
+			}
+			catch(e){
+				var aliasElement = document.createElement("h6");
+				aliasElement.innerText = alias;
+				peerMediaDiv.appendChild(aliasElement);
+			}
 			peerConnections.map(function(currentPeer){
 				try{
-					peerChannel[currentPeer].send(JSON.stringify({"aliasList": aliasList}));
+					peerChannel[currentPeer].send(JSON.stringify({"aliasList": aliasList, "aliasChanged": peerIDServer}));
 				}
 				catch(e){
 					console.log("error -> "+e);
