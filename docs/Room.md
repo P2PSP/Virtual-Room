@@ -173,7 +173,7 @@ Initiates the `RTCPeerConnection` and negotiation with other peers. Calls create
 
 | Name        | Type | Description |
 | ------------| ---- | ----------- |
-| currentPeer | `Object`  | - Server ID of the peer for peer Connection |
+| currentPeer | `Integer`  | - Server ID of the peer for peer Connection |
 | callback    | `Function`  | - To initialize data Channel |
 
 
@@ -280,7 +280,7 @@ Used to create data channel with `currentPeer`
 
 | Name        | Type | Description |
 | ------------| ---- | ----------- |
-| currentPeer | `Object`  | - current peer in peerConnections |
+| currentPeer | `Integer`  | - current peer in peerConnections |
 | callback | `function`  | - to set up channel |
 
 
@@ -363,7 +363,7 @@ Sets up the data channel established between two peers and updates the peerConne
 
 #### gotChunk(chunk, chunkNum)
 
-Appends the current chunk to media source on receiving a new chunk
+Appends the current chunk to queue on receiving a new chunk
 
 
 
@@ -382,3 +382,122 @@ Appends the current chunk to media source on receiving a new chunk
 ##### Returns
 
 - `Void`
+
+
+#### appendChunk(queue)
+
+Checks if the next chunk to be played exists in the queue and appends that chunk in the queue to Media Source
+
+
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| queue | `Array`  | - Array containing the chunks appropriately in its indices according to chunkNum  |
+
+
+
+
+
+##### Returns
+
+- `Void`
+
+
+#### gotLocalStream(localStream, currentPeer)
+
+Appends the self webcam stream in the room by making the self element and adding track in `window.localStream`
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| localStream | `Object`  | - Media Stream captured by `getUserMedia()`  |
+| currentPeer | `Integer`  | - Server ID of the peer for peer Connection |
+
+
+##### Returns
+
+- `Void`
+
+
+#### gotRemoteStream(event)
+
+Appends the webcam stream of the new peer in the room to every peer's page and makes a new video element
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| event | `Object`  | - Event on receiving remote stream by peer.  |
+
+
+##### Returns
+
+- `Void`
+
+
+#### vidPlayBack(event)
+
+Hanldles the sychronized playback by sending message over data channel to every peer on a play/pause event
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| event | `String`  | - Play/Pause event string on respective event trigger  |
+
+
+##### Returns
+
+- `Void`
+
+
+
+#### setAlias()
+
+Sets the alias of a peer and sends the new alias list to all the peers
+
+##### Returns
+
+- `Void`
+
+
+#### sendBurstMode(chunk, updateCount)
+
+Sends the chunk to all peers in burst mode, if the next chunk(sent by host peer) has to be added in the queue and lastChunk sent is not sent to all the peers or `peerPending!=null` by round robin scheduling
+
+
+##### Parameters
+
+| Name        | Type | Description |
+| ------------| ---- | ----------- |
+| chunk | `Object`  | - last chunk received by the peer from host peer  |
+| updateCount | `Integer`  | - chunk Number |
+
+
+
+##### Returns
+
+- `Void`
+
+
+
+#### stopWebCam()
+
+Stops the webcam and replaces the video element with a default avatar. Rather than deleting the video element node replace the child node with `img` element
+
+
+##### Returns
+
+- `Void`
+
+
+#### stopAudio()
+
+Stops the audio input from peer's microphone
