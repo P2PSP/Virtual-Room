@@ -47,8 +47,6 @@ var bytesAppended = 0;
 var sourceBufferAudio;
 var pauseToast;
 var webcamStreams = [];
-var outBufferAudio = [];
-var mediaSourceAudio = new MediaSource();
 
 console.log(peerID);
 
@@ -312,7 +310,6 @@ function fragmentMP4(){
 	    //create an URL (from mediaSource OBJ) as video's source
 	    vid.src = URL.createObjectURL(mediaSource);
 	    mediaSource.addEventListener('sourceopen', setSourceBuffer);
-	    mediaSourceAudio.addEventListener('sourceopen', setSourceBufferAudio);
 	}else{
     	console.error('Unsupported MIME type or codec: ', mimeCodec);
 	}
@@ -324,7 +321,6 @@ if ('MediaSource' in window && MediaSource.isTypeSupported(mimeCodec)) {
     //create an URL (from mediaSource OBJ) as video's source
     vid.src = URL.createObjectURL(mediaSource);
     mediaSource.addEventListener('sourceopen', setSourceBuffer);
-    mediaSourceAudio.addEventListener('sourceopen', setSourceBufferAudio);
 }else{
 	console.error('Unsupported MIME type or codec: ', mimeCodec);
 }
@@ -339,21 +335,6 @@ function setSourceBuffer(){
 	    sourceBuffer.segmentIndex = 0;
 	    sourceBuffer.AppendMode = "sequence";
 	    sourceBuffer.mode = "sequence";
-	// }
-
-}
-
-function setSourceBufferAudio(){
-	console.log("source open");
-	// if(peerID!=senderID){
-	var mimeCodec = 'audio/mp4; codecs="mp4a.40.2"';
-	// }
-	// if(sourceBuffer==null){
-    sourceBufferAudio = mediaSourceAudio.addSourceBuffer(mimeCodec);
-    sourceBufferAudio.segmentIndex = 0;
-    sourceBufferAudio.AppendMode = "sequence";
-    sourceBufferAudio.mode = "sequence";
-    console.log(sourceBufferAudio);
 	// }
 
 }
@@ -380,25 +361,6 @@ function onFragment(_) {
         var chunkEndTime = []; // Containing different chunks end time
 		var currentChunk = 0
 		var chunkStartTime = 0
-		try{
-	    	sourceBufferAudio.addEventListener('updateend', function(){
-	    		if(updateCount<initializeSegments[0].user.segmentIndex){
-	    			try{
-	    				if(!sourceBufferAudio.updating){
-	    					console.log(sourceBuffer);
-	    					var chunk = outBufferAudio[updateCount];
-	    					sourceBufferAudio.appendBuffer(outBuffer[updateCount]);
-	    				}
-	    			}
-	    			catch(e){
-	    				console.log(e);
-	    			}
-	    		}
-	    	})
-	    }
-	    catch(e){
-	    	console.log(e);
-	    }
         sourceBuffer.addEventListener('updateend', function (_) {
             if(updateCount < initializeSegments[0].user.segmentIndex){
             	try{
@@ -473,22 +435,11 @@ function onFragment(_) {
                 console.log("user.segmentIndex:"+user.segmentIndex);
                 var numChunks = Math.ceil(buffer.byteLength/16380); //16384 bytes = 16kb
                 var currentByte = 0
-                if(id==1){
-                    for(currentChunk = 0; currentChunk < numChunks; currentChunk++){
-                        outBuffer[user.segmentIndex] = buffer.slice(currentByte, currentByte+16380);
-                        currentByte+=16380;
-                        //user.appendBuffer(outBuffer[user.segmentIndex]); 
-                        user.segmentIndex++;
-                    }
-                }else{
-                	console.log("audio");
-                	var currentByte = 0;
-
-	    			for(currentChunk = 0; currentChunk < numChunks; currentChunk++){
-	    				outBufferAudio[user.segmentIndex] = buffer.slice(currentByte, currentByte+16380);
-	    				currentByte+=16380;
-	    				user.segmentIndex++;
-	    			}
+                for(currentChunk = 0; currentChunk < numChunks; currentChunk++){
+                    outBuffer[user.segmentIndex] = buffer.slice(currentByte, currentByte+16380);
+                    currentByte+=16380;
+                    //user.appendBuffer(outBuffer[user.segmentIndex]); 
+                    user.segmentIndex++;
                 }
             }; 
 
