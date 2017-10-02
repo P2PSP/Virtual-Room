@@ -22,7 +22,7 @@ $ ./test.me
 ## Run the front-end
 Open the following URL in Chromium/Chrome browser (we are working on other browser compatibility):
 ```
-http://127.0.0.1:3000/room/welcome
+http://127.0.0.1:3000/welcome
 ```
 
 # Acknowledgment
