@@ -17,7 +17,7 @@ var peersInRoom = [];
 var peerNum = document.getElementById("peer-num");
 var senderID;
 var mimeCodec = 'video/mp4; codecs="avc1.4D4029"';
-var outBuffer = new Array(); 
+var outBuffer = new Array();
 var sourceBuffer = null;
 var chunkSize = 16*1024; // 16kb
 var signalServer;
@@ -47,6 +47,16 @@ var bytesAppended = 0;
 var sourceBufferAudio;
 var pauseToast;
 var webcamStreams = [];
+
+
+function subirArchivoSubtitulos(){
+  var input =  document.getElementById('archivoSubido');
+  var vid = document.getElementById('video-stream');
+  var trackk = document.getElementById('sub');
+      // trackk.src = archivoSubido.files[0].toString();
+        trackk.src = window.URL.createObjectURL(archivoSubido.files[0]);
+        vid.play();
+}
 
 console.log(peerID);
 
@@ -122,7 +132,7 @@ window.onload = function(){
 };
 
 signalServer.onopen = function connectSignalServer(){
-	// on connecting to signal server add peer to room/add room 
+	// on connecting to signal server add peer to room/add room
 	// handling the case of host user to differentiate with normal peers
 	if (peerID == senderID){
 		signalServer.send(JSON.stringify({"addRoom": true, "roomID": senderID}));
@@ -170,13 +180,13 @@ function handleMessage(message){
 	});
 	};
 
-	// Initiating multiple connections with peer for new peer 
+	// Initiating multiple connections with peer for new peer
 	if (parsedMessage.peer_id_list){
 
 		peerIDList = parsedMessage.peer_id_list;
 		console.log(peerIDList);
 		var currentPeerNum; // defining the peerConnection index
-		peerIDServer = peerIDList.pop(); // an array containing peer ids excluding that of the receiving peer 
+		peerIDServer = peerIDList.pop(); // an array containing peer ids excluding that of the receiving peer
 		console.log(peerIDList);
 		if (peerIDServer==0){
 			console.log("The host peer");
@@ -288,11 +298,11 @@ function addPeer(){
 	peerMediaSource.id = "user-media-"+peerID;
 	peerMediaVideo.appendChild(peerMediaSource);
 	peerMediaDiv.setAttribute("class", "col s4");
-	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaDiv.appendChild(peerMediaVideo);
 	peerMediaElements.appendChild(peerMediaDiv);
 	peersInRoom[peerNum].peerID = peerID;
 	peerNum = peerNumUpdated;
-}	
+}
 
 
 // ------------------------Fragmenting MP4 in the browser--------------------------------
@@ -353,9 +363,9 @@ function onFragment(_) {
     fileRead.readAsArrayBuffer(videoFile);
     console.log("playback rate = "+vid.playbackRate);
     fileRead.onloadend = function (evt) {
-        console.log("2.on response"); 
+        console.log("2.on response");
         var mp4box = new MP4Box();
-        var initializeSegments ;  
+        var initializeSegments ;
         var updateCount = 0;
         var bytesAppended = 0;
         var chunkEndTime = []; // Containing different chunks end time
@@ -369,7 +379,7 @@ function onFragment(_) {
 		                console.log("8.append_cnt:"+updateCount);
 		                console.log(outBuffer[updateCount]);
 		                var chunk = outBuffer[updateCount];
-		                sourceBuffer.appendBuffer(outBuffer[updateCount]); 
+		                sourceBuffer.appendBuffer(outBuffer[updateCount]);
 		                bytesAppended += outBuffer[updateCount].byteLength; // outBuffer[updateCount].byteLength is the bytes of current chunk appended
 		                console.log(bytesAppended);
 		                console.log(durationInSeconds);
@@ -438,10 +448,10 @@ function onFragment(_) {
                 for(currentChunk = 0; currentChunk < numChunks; currentChunk++){
                     outBuffer[user.segmentIndex] = buffer.slice(currentByte, currentByte+16380);
                     currentByte+=16380;
-                    //user.appendBuffer(outBuffer[user.segmentIndex]); 
+                    //user.appendBuffer(outBuffer[user.segmentIndex]);
                     user.segmentIndex++;
                 }
-            }; 
+            };
 
             var nbSamples = Math.ceil((durationInSeconds/peerNum)*24); //assuming 24 fps
             if (videoFile.size/peerNum > 1048576*149){ // if a chunk size exceeds 150 mb, sourcebuffer quota exceeds
@@ -450,25 +460,25 @@ function onFragment(_) {
             }
             console.log(nbSamples);
             var options = { nbSamples: nbSamples };
-            mp4box.setSegmentOptions(info.tracks[0].id, sourceBuffer, options);  
-            initializeSegments = mp4box.initializeSegmentation();  
+            mp4box.setSegmentOptions(info.tracks[0].id, sourceBuffer, options);
+            initializeSegments = mp4box.initializeSegmentation();
             console.log("starting");
             mp4box.start();
             console.log("start->stop");
             mp4box.flush();
-            console.log("6.mp4 processing end"); 
+            console.log("6.mp4 processing end");
         };
 
         var ab = evt.target.result;
         console.log(ab);
         ab.fileStart = 0;
-        console.log("3.mp4 appendBuffer start,start point:"+nextBufferStart); 
+        console.log("3.mp4 appendBuffer start,start point:"+nextBufferStart);
         var nextBufferStart = mp4box.appendBuffer(ab);
-            
-        console.log("7.source buffer appendBuffer start:"); 
+
+        console.log("7.source buffer appendBuffer start:");
         try{
             console.log(initializeSegments[0].buffer);
-	        sourceBuffer.appendBuffer(initializeSegments[0].buffer); 
+	        sourceBuffer.appendBuffer(initializeSegments[0].buffer);
 	        readyChunk(initializeSegments[0].buffer, 0);
         }
         catch(e){
@@ -476,7 +486,7 @@ function onFragment(_) {
         	Materialize.toast("Codec not supported. Kindly choose another file to stream", 4000);
         }
     };
-    console.log("1.on send"); 
+    console.log("1.on send");
 }
 
 // ------------------------Finished fragmentation---------------------------------------
@@ -496,7 +506,7 @@ function preInititiation(){
 	peerMediaVideo.src = avatarPath;
 	peerMediaVideo.id = "user-media-"+peerID;
 	peerMediaDiv.setAttribute("class", "col s4");
-	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaDiv.appendChild(peerMediaVideo);
 	peerMediaElements.appendChild(peerMediaDiv);
 
 		if (peerID != senderID){
@@ -536,7 +546,7 @@ function fallbackUserMedia(){
 	window.localStream = localStream;
 	peerMediaVideo.id = "user-media-"+peerID;
 	peerMediaDiv.setAttribute("class", "col s4");
-	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaDiv.appendChild(peerMediaVideo);
 	peerMediaElements.appendChild(peerMediaDiv);
 
 	console.log(peerIDList);
@@ -627,7 +637,7 @@ function gotMessageFromServer(message) {
 		// window.localStream = localStream
 		peerMediaVideo.id = "user-media-"+currentPeer;
 		peerMediaDiv.setAttribute("class", "col s4");
-		peerMediaDiv.appendChild(peerMediaVideo); 
+		peerMediaDiv.appendChild(peerMediaVideo);
 		peerMediaElements.appendChild(peerMediaDiv);
 
 		peerConnection[currentPeer].ontrack = function(e){
@@ -636,7 +646,7 @@ function gotMessageFromServer(message) {
 		};
 
 		var peerMediaVideo = document.getElementById("user-media-"+peerID);
-		if(peerMediaVideo.nodeName == "VIDEO"){  
+		if(peerMediaVideo.nodeName == "VIDEO"){
 			window.localStream.getTracks().forEach(
 				function(track) {
 					console.log("adding stream to "+currentPeer);
@@ -649,7 +659,7 @@ function gotMessageFromServer(message) {
 				}
 			);
 		}
-		
+
         console.log(currentPeer);
         console.log(peerConnection[currentPeer]);
     }
@@ -808,7 +818,7 @@ function readyChunk(chunk, updateCount){
 	if(peerConnections.length>1 || peerIDServer == 0){
 		console.log(peerConnections);
 		sendChunk(streamMessage);
-	}	
+	}
 }
 
 // setting up channel to transmit data betweeen the peers
@@ -858,7 +868,7 @@ function setupChannel(currentPeer){
 					vid.onplay = function(){};
 					vid.play()
 					.then(function(){
-					Materialize.toast(message.peerID+" played the video", 2000);	
+					Materialize.toast(message.peerID+" played the video", 2000);
 					})
 					.then(function(){
 						console.log("adding play listener");
@@ -909,8 +919,8 @@ function setupChannel(currentPeer){
 					peerMediaVideoStop.setAttribute("height", "150");
 					peerMediaVideoStop.src = avatarPath;
 					peerMediaVideoStop.id = "user-media-"+message.peer+"-stop";
-	
-					peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);	
+
+					peerMediaVideo.parentNode.replaceChild(peerMediaVideoStop, peerMediaVideo);
 				}else{
 					var peerMediaVideo = document.createElement("video");
 					peerMediaVideo.setAttribute("class", "z-depth-5");
@@ -1040,7 +1050,7 @@ function gotLocalStream(localStream, currentPeer){
 	window.localStream = localStream
 	peerMediaVideo.id = "user-media-"+peerID;
 	peerMediaDiv.setAttribute("class", "col s4");
-	peerMediaDiv.appendChild(peerMediaVideo); 
+	peerMediaDiv.appendChild(peerMediaVideo);
 	peerMediaElements.appendChild(peerMediaDiv);
 
 	console.log(peerIDList);
@@ -1062,7 +1072,7 @@ function gotLocalStream(localStream, currentPeer){
 }
 
 // gotRemoteStream called two times on addition of both audio and video tracks
-function gotRemoteStream(event){ 
+function gotRemoteStream(event){
 	console.log(event.track.kind);
 	console.log(event.track.id);
 	var peerMediaVideo;
@@ -1076,7 +1086,7 @@ function gotRemoteStream(event){
 	// peerMediaVideo.setAttribute("height", "150");
 	// peerMediaVideo.id = "user-media-"+currentPeer;
 	// peerMediaDiv.setAttribute("class", "col s4");
-	// peerMediaDiv.appendChild(peerMediaVideo); 
+	// peerMediaDiv.appendChild(peerMediaVideo);
 	// peerMediaElements.appendChild(peerMediaDiv);
 	// peerMediaVideo.srcObject = event.streams[0];
 
@@ -1100,7 +1110,7 @@ function gotRemoteStream(event){
 		peerMediaVideo.setAttribute("height", "150");
 		peerMediaVideo.id = "user-media-"+currentPeer;
 		peerMediaDiv.setAttribute("class", "col s4");
-		peerMediaDiv.appendChild(peerMediaVideo); 
+		peerMediaDiv.appendChild(peerMediaVideo);
 		peerMediaElements.appendChild(peerMediaDiv);
 	}else{
 		var peerMediaVideo = document.getElementById("user-media-"+currentPeer);
