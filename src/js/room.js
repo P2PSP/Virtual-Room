@@ -49,14 +49,22 @@ var pauseToast;
 var webcamStreams = [];
 
 
+
 function subirArchivoSubtitulos(){
   var input =  document.getElementById('archivoSubido');
   var vid = document.getElementById('video-stream');
   var trackk = document.getElementById('sub');
-      // trackk.src = archivoSubido.files[0].toString();
-        trackk.src = window.URL.createObjectURL(archivoSubido.files[0]);
-        vid.play();
+  // trackk.src = archivoSubido.files[0].toString();
+  var subs =  window.URL.createObjectURL(archivoSubido.files[0]);
+  trackk.src = subs;
+  vid.play();
+
+
+//sendMessage();
+
 }
+
+
 
 console.log(peerID);
 
