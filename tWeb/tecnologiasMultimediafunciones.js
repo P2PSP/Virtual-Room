@@ -124,8 +124,6 @@ var chunkLength=1000;
     var reader = new window.FileReader();
     reader.readAsDataURL(archivoSubido.files[0]);
     console.log(reader);
-    reader.onload = console.log("Hello World");
-    console.log(reader);
     reader.onload=onReadAsDataURL();
   }
 
@@ -148,8 +146,8 @@ var chunkLength=1000;
     if (remainingDataURL.length) setTimeout(function () {
         onReadAsDataURL(null, remainingDataURL); // continue transmitting
     }, 500);
+    if(event)
     */
-    //if(event)
     console.log(event);
     console.log(text);
       text1=event.target.result;
@@ -166,7 +164,6 @@ var chunkLength=1000;
     archSubtitulo=arrayToStoreChunks.join('');
     */
     var blob=dataURItoBlob(JSON.parse(event.data));
-
     var vid = document.getElementById('miVideo');
     var trackk = document.getElementById('sub');
     trackk.src = window.URL.createObjectURL(blob);
