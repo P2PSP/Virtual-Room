@@ -58,11 +58,8 @@ function subirArchivoSubtitulos(){
   var subs =  window.URL.createObjectURL(archivoSubido.files[0]);
   trackk.src = subs;
   vid.play();
-
-
-//sendMessage();
-
-}
+  //sendMessage();
+  }
 
 
 
