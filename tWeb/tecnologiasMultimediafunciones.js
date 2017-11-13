@@ -1,4 +1,5 @@
-
+var contador=0;
+var textLength=null;
 var bytes = null;
 var arrayBuffer = null;
 var archSubtitulo = null;
@@ -122,16 +123,20 @@ var chunkLength=1000;
 
   function sendMessage() {
     var reader = new window.FileReader();
+    //reader.readAsDataURL(archivoSubido.files[0]);
     reader.readAsText(archivoSubido.files[0]);
     console.log(reader);
     reader.onload=onReadAsDataURL;
   }
 
   function onReadAsDataURL(event, text) {
-    /*
     var data = {}; // data object to transmit over data channel
 
     if (event) text = event.target.result; // on first invocation
+    if(contador==0){
+      textLength=text.length;
+      contador=1;
+    }
 
     if (text.length > chunkLength) {
         data.message = text.slice(0, chunkLength); // getting chunk using predefined chunk length
@@ -139,39 +144,45 @@ var chunkLength=1000;
         data.message = text;
         data.last = true;
     }
-
+    console.log(data);
+    console.log(data.message);
     sendChannel.send(JSON.stringify(data)); // use JSON.stringify for chrome!
     console.log("Archivo enviado");
     var remainingDataURL = text.slice(data.message.length);
     if (remainingDataURL.length) setTimeout(function () {
         onReadAsDataURL(null, remainingDataURL); // continue transmitting
     }, 500);
-    if(event)
-    */
-    console.log(event);
-    console.log(text);
+    /*
+    if(event){
       text1=event.target.result;
       console.log(text1);
       sendChannel.send(JSON.stringify(text1));
+    }
+    */
 }
 
 
   function handleReceiveMessage(event) {
     console.log("Recibido");
-    console.log(JSON.parse(event.data));
-
-    /*
     var arrayToStoreChunks = [];
+    console.log(JSON.parse(event.data).message);
     arrayToStoreChunks.push(JSON.parse(event.data).message);
-    archSubtitulo=arrayToStoreChunks.join('');
-    */
-    var blob = new Blob( [JSON.parse(event.data)],{type:"text/vtt"});
-    console.log(blob);
-    //var blob=dataURItoBlob(JSON.parse(event.data));
-    var vid = document.getElementById('miVideo');
-    var trackk = document.getElementById('sub');
-    trackk.src = window.URL.createObjectURL(blob);
-    vid.play();
+    if(contador==1){
+      archSubtitulo=arrayToStoreChunks.join('');
+      contador=2;
+    }else{
+      archSubtitulo+=arrayToStoreChunks.join('');
+    }
+    console.log(archSubtitulo);
+    if(archSubtitulo.length==textLength){
+      console.log("Creando blob");
+      var blob=new Blob([archSubtitulo],{type: "text/vtt"});
+      console.log(blob);
+      var vid = document.getElementById('miVideo');
+      var trackk = document.getElementById('sub');
+      trackk.src = window.URL.createObjectURL(blob);
+      vid.play();
+  }
   }
 
   function dataURItoBlob(dataURI) {
