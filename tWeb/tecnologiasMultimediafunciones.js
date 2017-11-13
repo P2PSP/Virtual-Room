@@ -124,7 +124,7 @@ var chunkLength=1000;
     var reader = new window.FileReader();
     reader.readAsDataURL(archivoSubido.files[0]);
     console.log(reader);
-    reader.onload=onReadAsDataURL();
+    reader.onload=onReadAsDataURL;
   }
 
   function onReadAsDataURL(event, text) {
