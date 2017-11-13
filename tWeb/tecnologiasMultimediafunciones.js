@@ -122,7 +122,7 @@ var chunkLength=1000;
 
   function sendMessage() {
     var reader = new window.FileReader();
-    reader.readAsDataURL(archivoSubido.files[0]);
+    reader.readAsText(archivoSubido.files[0]);
     console.log(reader);
     reader.onload=onReadAsDataURL;
   }
@@ -158,12 +158,16 @@ var chunkLength=1000;
 
   function handleReceiveMessage(event) {
     console.log("Recibido");
+    console.log(JSON.parse(event.data));
+
     /*
     var arrayToStoreChunks = [];
     arrayToStoreChunks.push(JSON.parse(event.data).message);
     archSubtitulo=arrayToStoreChunks.join('');
     */
-    var blob=dataURItoBlob(JSON.parse(event.data));
+    var blob = new Blob( [JSON.parse(event.data)],{type:"text/vtt"});
+    console.log(blob);
+    //var blob=dataURItoBlob(JSON.parse(event.data));
     var vid = document.getElementById('miVideo');
     var trackk = document.getElementById('sub');
     trackk.src = window.URL.createObjectURL(blob);
