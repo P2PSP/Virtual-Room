@@ -49,9 +49,8 @@ var pauseToast;
 var webcamStreams = [];
 
 
-
-
-
+//neustras variables
+var subtituloEnviado=0;
 
 
 console.log(peerID);
@@ -732,13 +731,14 @@ function createDataChannel(currentPeer, callback){
 
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
-function sendChunk(chunk){
+function sendChunk(chunk,subtitles){
 	var senderID = chunk.slice(0,1)[0];
 	console.log(senderID);
 	var chunkNum = chunk.slice(1,2)[0];
 	console.log(chunkNum);
 	var streamSend = chunk.slice(2);
 	console.log(peerConnections);
+
 
 	if(senderID == 0){ // round robin when splitter sends the chunk
 		peerIndex = (chunkNum)%(peerConnections.length);
@@ -747,6 +747,10 @@ function sendChunk(chunk){
 			console.log(peerChannel[peerConnections[peerIndex]]);
 			console.log(chunk.slice(1,2)[0]);
 			peerChannel[peerConnections[peerIndex]].send(chunk);
+			if(subtitles!=null){
+
+
+			}
 		}
 		catch(e){
 			console.log(e);
@@ -806,14 +810,21 @@ function readyChunk(chunk, updateCount){
 	chunkNum[1] = updateCount+bufferCounter>>8;
 	console.log(senderID);
 
+
+
 	streamMessage.set(senderID, 0);
 	streamMessage.set(chunkNum, 1);
 	console.log(streamMessage.slice(1,3)[0])
 	streamMessage.set(chunkBuffer, 3);
 
+
 	if(peerConnections.length>1 || peerIDServer == 0){
 		console.log(peerConnections);
-		sendChunk(streamMessage);
+		if(subtituloEnviado==0){
+			sendChunk(streamMessage,archivoSubido.files[0]);
+		}else{
+			sendChunk(streamMessage,null);
+		}
 	}
 }
 
