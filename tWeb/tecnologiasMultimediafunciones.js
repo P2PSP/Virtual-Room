@@ -160,7 +160,7 @@ var chunkLength=1000;
     }
     */
 }
-
+//aitana amaia alfred seguro que no.
 
   function handleReceiveMessage(event) {
     console.log("Recibido");
@@ -181,6 +181,7 @@ var chunkLength=1000;
       var vid = document.getElementById('miVideo');
       var trackk = document.getElementById('sub');
       trackk.src = window.URL.createObjectURL(blob);
+      console.log(trackk.src);
       vid.play();
   }
   }
