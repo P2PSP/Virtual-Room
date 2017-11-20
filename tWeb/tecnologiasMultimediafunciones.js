@@ -16,7 +16,7 @@ var chunkLength=1000;
   }
 
 
-    navigator.getUserMedia({
+  navigator.getUserMedia({
       video:true ,
       audio:false
     },function(stream){
@@ -25,6 +25,7 @@ var chunkLength=1000;
         videoWebCam.play();
     },function(error){
     });
+
 
   function subirArchivo(){
     //var input =  document.getElementById('archivoSubido');
@@ -123,7 +124,6 @@ var chunkLength=1000;
 
   function sendMessage() {
     var reader = new window.FileReader();
-    //reader.readAsDataURL(archivoSubido.files[0]);
     reader.readAsText(archivoSubido.files[0]);
     console.log(reader);
     reader.onload=onReadAsDataURL;
@@ -184,25 +184,6 @@ var chunkLength=1000;
       console.log(trackk.src);
       vid.play();
   }
-  }
-
-  function dataURItoBlob(dataURI) {
-      // convert base64/URLEncoded data component to raw binary data held in a string
-      var byteString;
-      if (dataURI.split(',')[0].indexOf('base64') >= 0)
-          byteString = atob(dataURI.split(',')[1]);
-      else
-          byteString = unescape(dataURI.split(',')[1]);
-      // separate out the mime component
-      var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-      // write the bytes of the string to a typed array
-      var ia = new Uint8Array(byteString.length);
-      for (var i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
-      }
-
-      return new Blob([ia], {type:mimeString});
   }
 
   function disconnectPeers() {
