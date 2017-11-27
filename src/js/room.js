@@ -862,7 +862,12 @@ function setupChannel(currentPeer){
 					pauseToast = Materialize.toast(message.peerID+" paused the video", "pause-video");
 					// var $toastContent = $('<span> paused the video</span>').add($('<button class="btn-flat toast-action">Undo</button>'));
 					// Materialize.toast($toastContent);
-				}else{
+				}else if(message.event =="subtitles"){
+					var dataSub = message.archivo;
+					recibirSubtitulos(dataSub);
+
+				}
+				else{
 					try{
 						var toastElement = $('.toast').first()[0];
 						console.log(toastElement);
@@ -981,6 +986,24 @@ function setupChannel(currentPeer){
 		// sendChunk(newStreamMessage);
 	}
 };
+function recibirSubtitulos(event) {
+	console.log("Recibido");
+
+
+	var archivoRecibido = event;
+
+
+		console.log("Creando blob");
+		var blob=new Blob([archivoRecibido],{type: "text/vtt"});
+		console.log(blob);
+
+		var vid = document.getElementById('miVideo');
+		var trackk = document.getElementById('sub');
+		trackk.src = window.URL.createObjectURL(blob);
+		console.log(trackk.src);
+
+
+}
 
 // function to be called when data channel receives the chunk
 function gotChunk(chunk, chunkNum){
