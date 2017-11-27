@@ -51,7 +51,9 @@ var webcamStreams = [];
 
 //neustras variables
 var subtituloEnviado=0;
-
+var contador=0;
+var textLength=0;
+var archSubtitulo;
 
 console.log(peerID);
 
@@ -731,14 +733,13 @@ function createDataChannel(currentPeer, callback){
 
 // Send chunk to the appropriate peer according to round robin scheduling
 // the chunk must be sent such that (senderID+numChunk)%(total number of peers)=0
-function sendChunk(chunk,subtitles){
+function sendChunk(chunk){
 	var senderID = chunk.slice(0,1)[0];
 	console.log(senderID);
 	var chunkNum = chunk.slice(1,2)[0];
 	console.log(chunkNum);
 	var streamSend = chunk.slice(2);
 	console.log(peerConnections);
-
 
 	if(senderID == 0){ // round robin when splitter sends the chunk
 		peerIndex = (chunkNum)%(peerConnections.length);
@@ -747,10 +748,6 @@ function sendChunk(chunk,subtitles){
 			console.log(peerChannel[peerConnections[peerIndex]]);
 			console.log(chunk.slice(1,2)[0]);
 			peerChannel[peerConnections[peerIndex]].send(chunk);
-			if(subtitles!=null){
-
-
-			}
 		}
 		catch(e){
 			console.log(e);
@@ -810,21 +807,14 @@ function readyChunk(chunk, updateCount){
 	chunkNum[1] = updateCount+bufferCounter>>8;
 	console.log(senderID);
 
-
-
 	streamMessage.set(senderID, 0);
 	streamMessage.set(chunkNum, 1);
 	console.log(streamMessage.slice(1,3)[0])
 	streamMessage.set(chunkBuffer, 3);
 
-
 	if(peerConnections.length>1 || peerIDServer == 0){
 		console.log(peerConnections);
-		if(subtituloEnviado==0){
-			sendChunk(streamMessage,archivoSubido.files[0]);
-		}else{
-			sendChunk(streamMessage,null);
-		}
+		sendChunk(streamMessage);
 	}
 }
 
@@ -865,9 +855,7 @@ function setupChannel(currentPeer){
 				}else if(message.event =="subtitles"){
 					var dataSub = message.archivo;
 					recibirSubtitulos(dataSub);
-
-				}
-				else{
+				}else{
 					try{
 						var toastElement = $('.toast').first()[0];
 						console.log(toastElement);
@@ -989,44 +977,61 @@ function setupChannel(currentPeer){
 
 function sendSubtitles(){
 	subirArchivoSubtitulos();
-	var tipo = "subtitles";
-
-
 	var reader = new window.FileReader();
 	reader.readAsText(archivoSubido.files[0]);
 	console.log(reader);
-	reader.onload=function(event,text){
+	reader.onload=onReadSubtitles;
+}
 
+function onReadSubtitles(event, text) {
+	var tipo = "subtitles";
+	var data = {}; // data object to transmit over data channel
 
-		if (event) {
-			text = event.target.result;
-		}
+	if (event){
+		text = event.target.result;
+	} // on first invocation
+	if(contador==0){
+		data.textLength=text.length;
+		console.log(text.length);
+		contador=1;
+	}
 
-		console.log(text);
-		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": tipo,"archivo" : text}));
-		console.log("Enviados los subtitles JOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJ");
-	};
-
-
+	if (text.length > chunkSize) {
+			data.message = text.slice(0, chunkSize); // getting chunk using predefined chunk length
+	} else {
+			data.message = text;
+	}
+	peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": tipo,"archivo" : data}));
+	console.log("Archivo enviado");
+	var remainingData = text.slice(data.message.length);
+	if (remainingData.length) setTimeout(function () {
+			onReadSubtitles(null, remainingData); // continue transmitting
+	}, 500);
 }
 
 function recibirSubtitulos(event) {
 	console.log("Recibido");
-
-
-	var archivoRecibido = event;
-
-
+	var arrayToStoreChunks = [];
+	arrayToStoreChunks.push(event.message);
+	if(contador==0){
+		console.log("event.textLength: "+event.textLength);
+		textLength=event.textLength;
+		archSubtitulo=arrayToStoreChunks.join('');
+		contador=1;
+	}else{
+		archSubtitulo+=arrayToStoreChunks.join('');
+	}
+	console.log(archSubtitulo.length);
+	console.log(textLength);
+	if(archSubtitulo.length==textLength){
 		console.log("Creando blob");
-		var blob=new Blob([archivoRecibido],{type: "text/vtt"});
+		var blob=new Blob([archSubtitulo],{type: "text/vtt"});
 		console.log(blob);
-
 		var vid = document.getElementById('miVideo');
 		var trackk = document.getElementById('sub');
 		trackk.src = window.URL.createObjectURL(blob);
-		console.log(trackk.src);
-
-
+		//vid.play();
+	}
 }
 
 // function to be called when data channel receives the chunk
@@ -1365,48 +1370,6 @@ function stopAudio(){
 	},fallbackUserMedia)
 }
 
-
-
-//CREATE DATACHANNEL FOR SUBTITLES
-var contador=0;
-var textLength=null;
-var bytes = null;
-var arrayBuffer = null;
-var archSubtitulo = null;
-var chunkLength=1000;
-
-/*
-  function parar(){
-    var video = document.getElementById('miVideo')
-    video.pause();
-  }
-
-  function pararCamara(){
-    var video = document.getElementById('video')
-    video.pause();
-  }
-*/
-/*
-  navigator.getUserMedia({
-      video:true ,
-      audio:false
-    },function(stream){
-        var videoWebCam = document.getElementById('videoWebCam');
-        videoWebCam.src = window.URL.createObjectURL(stream);
-        videoWebCam.play();
-    },function(error){
-    });
-*/
-/*
-  function subirArchivoLocal(){
-    //var input =  document.getElementById('archivoSubido');
-    var vid = document.getElementById('miVideo');
-    var trackk = document.getElementById('sub');
-    trackk.src = window.URL.createObjectURL(archivoSubido.files[0]);
-    vid.play();
-  }
-*/
-//
 function subirArchivoSubtitulos(){
   var input =  document.getElementById('archivoSubido');
   var vid = document.getElementById('video-stream');
@@ -1414,182 +1377,5 @@ function subirArchivoSubtitulos(){
   // trackk.src = archivoSubido.files[0].toString();
   var subs =  window.URL.createObjectURL(archivoSubido.files[0]);
   trackk.src = subs;
-  vid.play();
-  }
-
-//
-  function startup() {
-    connectButton = document.getElementById('connectButton');
-    disconnectButton = document.getElementById('disconnectButton');
-    sendButton = document.getElementById('sendButton');
-    messageInputBox = document.getElementById('message');
-    receiveBox = document.getElementById('receivebox');
-
-    // Set event listeners for user interface widgets
-
-    connectButton.addEventListener('click', connectPeers, false);
-    disconnectButton.addEventListener('click', disconnectPeers, false);
-    sendButton.addEventListener('click', sendMessage, false);
-  }
-  //
-  function connectPeers(){
-    localConnection = new RTCPeerConnection();
-
-    sendChannel = localConnection.createDataChannel("sendChannel");
-    sendChannel.onopen = handleSendChannelStatusChange;
-    sendChannel.onclose = handleSendChannelStatusChange;
-
-    remoteConnection = new RTCPeerConnection();
-    remoteConnection.ondatachannel = receiveChannelCallback;
-
-    localConnection.onicecandidate = e => !e.candidate
-        || remoteConnection.addIceCandidate(e.candidate)
-        .catch(handleAddCandidateError);
-
-    remoteConnection.onicecandidate = e => !e.candidate
-        || localConnection.addIceCandidate(e.candidate)
-        .catch(handleAddCandidateError);
-
-
-        localConnection.createOffer()
-        .then(offer => localConnection.setLocalDescription(offer))
-        .then(() => remoteConnection.setRemoteDescription(localConnection.localDescription))
-        .then(() => remoteConnection.createAnswer())
-        .then(answer => remoteConnection.setLocalDescription(answer))
-        .then(() => localConnection.setRemoteDescription(remoteConnection.localDescription))
-        .catch(handleCreateDescriptionError);
-
-  }
-  //
-  function handleLocalAddCandidateSuccess() {
-    connectButton.disabled = true;
-  }
-//
-  function handleRemoteAddCandidateSuccess() {
-    disconnectButton.disabled = false;
-  }
-//
-  function receiveChannelCallback(event) {
-    receiveChannel = event.channel;
-    receiveChannel.onmessage = handleReceiveMessage;
-    receiveChannel.onopen = handleReceiveChannelStatusChange;
-    receiveChannel.onclose = handleReceiveChannelStatusChange;
-  }
-
-//
-  function handleSendChannelStatusChange(event) {
-    if (sendChannel) {
-      var state = sendChannel.readyState;
-
-      if (state === "open") {
-        messageInputBox.disabled = false;
-        messageInputBox.focus();
-        sendButton.disabled = false;
-        disconnectButton.disabled = false;
-        connectButton.disabled = true;
-      } else {
-        messageInputBox.disabled = true;
-        sendButton.disabled = true;
-        connectButton.disabled = false;
-        disconnectButton.disabled = true;
-      }
-    }
-  }
-//
-  function handleReceiveChannelStatusChange(event) {
-    if (receiveChannel) {
-      console.log("Receive channel's status has changed to " +
-                  receiveChannel.readyState);
-    }
-  }
-
-  function sendMessage() {
-    var reader = new window.FileReader();
-    reader.readAsText(archivoSubido.files[0]);
-    console.log(reader);
-    reader.onload=onReadSubtitles;
-  }
-
-  function onReadSubtitles(event, text) {
-    var data = {}; // data object to transmit over data channel
-
-    if (event) text = event.target.result; // on first invocation
-    if(contador==0){
-      textLength=text.length;
-      contador=1;
-    }
-
-    if (text.length > chunkLength) {
-        data.message = text.slice(0, chunkLength); // getting chunk using predefined chunk length
-    } else {
-        data.message = text;
-        data.last = true;
-    }
-    console.log(data);
-    console.log(data.message);
-    sendChannel.send(JSON.stringify(data)); // use JSON.stringify for chrome!
-    console.log("Archivo enviado");
-    var remainingDataURL = text.slice(data.message.length);
-    if (remainingDataURL.length) setTimeout(function () {
-        onReadAsDataURL(null, remainingDataURL); // continue transmitting
-    }, 500);
-    /*
-    if(event){
-      text1=event.target.result;
-      console.log(text1);
-      sendChannel.send(JSON.stringify(text1));
-    }
-    */
+  //vid.play();
 }
-
-//
-  function handleReceiveMessage(event) {
-    console.log("Recibido");
-    var arrayToStoreChunks = [];
-    console.log(JSON.parse(event.data).message);
-    arrayToStoreChunks.push(JSON.parse(event.data).message);
-    if(contador==1){
-      archSubtitulo=arrayToStoreChunks.join('');
-      contador=2;
-    }else{
-      archSubtitulo+=arrayToStoreChunks.join('');
-    }
-    console.log(archSubtitulo);
-    if(archSubtitulo.length==textLength){
-      console.log("Creando blob");
-      var blob=new Blob([archSubtitulo],{type: "text/vtt"});
-      console.log(blob);
-      var vid = document.getElementById('miVideo');
-      var trackk = document.getElementById('sub');
-      trackk.src = window.URL.createObjectURL(blob);
-      console.log(trackk.src);
-      vid.play();
-  }
-  }
-//
-  function disconnectPeers() {
-
-    // Close the RTCDataChannels if they're open.
-
-    sendChannel.close();
-    receiveChannel.close();
-
-    // Close the RTCPeerConnections
-
-    localConnection.close();
-    remoteConnection.close();
-
-    sendChannel = null;
-    receiveChannel = null;
-    localConnection = null;
-    remoteConnection = null;
-
-    // Update user interface elements
-
-    connectButton.disabled = false;
-    disconnectButton.disabled = true;
-    sendButton.disabled = true;
-
-    messageInputBox.value = "";
-    messageInputBox.disabled = true;
-  }
