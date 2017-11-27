@@ -1494,7 +1494,7 @@ function subirArchivoSubtitulos(){
     }
     */
 }
-//aitana amaia alfred seguro que no.
+
 //
   function handleReceiveMessage(event) {
     console.log("Recibido");
@@ -1546,3 +1546,25 @@ function subirArchivoSubtitulos(){
     messageInputBox.value = "";
     messageInputBox.disabled = true;
   }
+
+function sendSubtitles(){
+	var tipo = "subtitles";
+
+
+	var reader = new window.FileReader();
+	reader.readAsText(archivoSubido.files[0]);
+	console.log(reader);
+	reader.onload=function(event,text){
+
+
+		if (event) {
+			text = event.target.result;
+		}
+
+		console.log(text);
+		peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": tipo,"archivo" : text}));
+		console.log("Enviados los subtitles JOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJOJ");
+	};
+
+
+}
