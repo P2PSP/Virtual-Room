@@ -53,7 +53,7 @@
       <div class="col s12">
         <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
           <source id="video-source" type="video/mp4">
-          <track id = "sub" kind="subtitles" label="opcional" mode="showing" default></track>
+          <track id = "sub" kind="subtitles" label="opcional" src="../res/empty.vtt" mode="showing" default></track>
         </video>
       </div>
     </div>
@@ -88,12 +88,10 @@
   </div>
 </div>
 </main>
+    <input type="file" id="archivoSubido"/>
     <button id = "boton" onclick="sendSubtitles()">ooooo</button>
 <!-- Footer -->
   <footer class="footer-copyright">
-
-
-    <input type="file" id="archivoSubido"/>
     <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
   </footer>
 
