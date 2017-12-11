@@ -50,10 +50,9 @@ var webcamStreams = [];
 
 
 //neustras variables
-var subtituloEnviado=0;
-var contador=0;
+var counter=0;
 var textLength=0;
-var archSubtitulo;
+var subtitleFile;
 
 console.log(peerID);
 
@@ -853,8 +852,8 @@ function setupChannel(currentPeer){
 					// var $toastContent = $('<span> paused the video</span>').add($('<button class="btn-flat toast-action">Undo</button>'));
 					// Materialize.toast($toastContent);
 				}else if(message.event =="subtitles"){
-					var dataSub = message.archivo;
-					recibirSubtitulos(dataSub);
+					var dataSub = message.file;
+					receiveSubtitles(dataSub);
 				}else{
 					try{
 						var toastElement = $('.toast').first()[0];
@@ -976,24 +975,24 @@ function setupChannel(currentPeer){
 };
 
 function sendSubtitles(){
-	subirArchivoSubtitulos();
+	uploadSubtitleFile();
 	var reader = new window.FileReader();
-	reader.readAsText(archivoSubido.files[0]);
+	reader.readAsText(uploadedSubtitles.files[0]);
 	console.log(reader);
 	reader.onload=onReadSubtitles;
 }
 
 function onReadSubtitles(event, text) {
-	var tipo = "subtitles";
+	var type = "subtitles";
 	var data = {}; // data object to transmit over data channel
 
 	if (event){
 		text = event.target.result;
 	} // on first invocation
-	if(contador==0){
+	if(counter==0){
 		data.textLength=text.length;
 		console.log(text.length);
-		contador=1;
+		counter=1;
 	}
 
 	if (text.length > chunkSize) {
@@ -1001,33 +1000,32 @@ function onReadSubtitles(event, text) {
 	} else {
 			data.message = text;
 	}
-	peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": tipo,"archivo" : data}));
-	console.log("Archivo enviado");
+	peerChannel[currentPeer].send(JSON.stringify({"peerID": peerID, "event": type,"file" : data}));
+	console.log("Subtitles chunk sent");
 	var remainingData = text.slice(data.message.length);
 	if (remainingData.length) setTimeout(function () {
 			onReadSubtitles(null, remainingData); // continue transmitting
 	}, 500);
 }
 
-function recibirSubtitulos(event) {
-	console.log("Recibido");
+function receiveSubtitles(event) {
+	console.log("Received subtitle chunk");
 	var arrayToStoreChunks = [];
 	arrayToStoreChunks.push(event.message);
-	if(contador==0){
+	if(counter==0){
 		console.log("event.textLength: "+event.textLength);
 		textLength=event.textLength;
-		archSubtitulo=arrayToStoreChunks.join('');
-		contador=1;
+		subtitleFile=arrayToStoreChunks.join('');
+		counter=1;
 	}else{
-		archSubtitulo+=arrayToStoreChunks.join('');
+		subtitleFile+=arrayToStoreChunks.join('');
 	}
-	console.log(archSubtitulo.length);
-	console.log(textLength);
-	if(archSubtitulo.length==textLength){
-		console.log("Creando blob");
-		var blob=new Blob([archSubtitulo],{type: "text/vtt"});
+	console.log("Received subtitles length: "+subtitleFile.length);
+	console.log("Original subtitles length: "+textLength);
+	if(subtitleFile.length==textLength){
+		console.log("Creating blob");
+		var blob=new Blob([subtitleFile],{type: "text/vtt"});
 		console.log(blob);
-		var vid = document.getElementById('miVideo');
 		var trackk = document.getElementById('sub');
 		trackk.src = window.URL.createObjectURL(blob);
 		//vid.play();
@@ -1370,12 +1368,12 @@ function stopAudio(){
 	},fallbackUserMedia)
 }
 
-function subirArchivoSubtitulos(){
-  var input =  document.getElementById('archivoSubido');
+function uploadSubtitleFile(){
+  var input =  document.getElementById('uploadedSubtitles');
   var vid = document.getElementById('video-stream');
   var trackk = document.getElementById('sub');
-  // trackk.src = archivoSubido.files[0].toString();
-  var subs =  window.URL.createObjectURL(archivoSubido.files[0]);
+  // trackk.src = uploadedSubtitles.files[0].toString();
+  var subs =  window.URL.createObjectURL(uploadedSubtitles.files[0]);
   trackk.src = subs;
   //vid.play();
 }
