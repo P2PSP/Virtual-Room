@@ -49,10 +49,11 @@ var pauseToast;
 var webcamStreams = [];
 
 
-//neustras variables
+//variables for subtitles 
 var counter=0;
 var textLength=0;
 var subtitleFile;
+var trackID =0;
 
 console.log(peerID);
 
@@ -975,11 +976,12 @@ function setupChannel(currentPeer){
 };
 
 function sendSubtitles(){
-	uploadSubtitleFile();
+	addTrackItem(uploadedSubtitles.files[0]);
 	var reader = new window.FileReader();
 	reader.readAsText(uploadedSubtitles.files[0]);
 	console.log(reader);
 	reader.onload=onReadSubtitles;
+	counter = 0;
 }
 
 function onReadSubtitles(event, text) {
@@ -1005,7 +1007,7 @@ function onReadSubtitles(event, text) {
 	var remainingData = text.slice(data.message.length);
 	if (remainingData.length) setTimeout(function () {
 			onReadSubtitles(null, remainingData); // continue transmitting
-	}, 500);
+	}, 50);
 }
 
 function receiveSubtitles(event) {
@@ -1026,9 +1028,10 @@ function receiveSubtitles(event) {
 		console.log("Creating blob");
 		var blob=new Blob([subtitleFile],{type: "text/vtt"});
 		console.log(blob);
-		var trackk = document.getElementById('sub');
-		trackk.src = window.URL.createObjectURL(blob);
-		//vid.play();
+		addTrackItem(blob);
+		counter=0;
+		subtitleFile="";
+
 	}
 }
 
@@ -1368,12 +1371,22 @@ function stopAudio(){
 	},fallbackUserMedia)
 }
 
-function uploadSubtitleFile(){
-  var input =  document.getElementById('uploadedSubtitles');
-  var vid = document.getElementById('video-stream');
-  var trackk = document.getElementById('sub');
-  // trackk.src = uploadedSubtitles.files[0].toString();
-  var subs =  window.URL.createObjectURL(uploadedSubtitles.files[0]);
-  trackk.src = subs;
-  //vid.play();
+function addTrackItem(subtitleFile){
+
+	var idTrack = "track"+trackID;
+	var track;
+	if(trackID==0){
+		track = "<track id="+idTrack+" kind='subtitles'  mode='showing' default>";
+	}else{
+		track = "<track id="+idTrack+" kind='subtitles'>";
+	}
+
+
+	var htmlTrack = document.getElementById('video-stream').innerHTML;
+	console.log();
+	document.getElementById('video-stream').innerHTML=htmlTrack+track;
+	var url = window.URL.createObjectURL(subtitleFile);
+	document.getElementById(idTrack).src=url;
+
+	trackID++;
 }
