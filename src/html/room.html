@@ -2,8 +2,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link href="../css/slider.css" type="text/css" rel="stylesheet" media="screen,projection" />    
   <title>Virtual Room-P2PSP</title>
 
   <!-- CSS  -->
@@ -11,23 +14,45 @@
   <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
   <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
 </head>
-<main>
-  <nav class="grey darken-4 lighten-1" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
-      <ul class="right ">
+
+<body style="background-color: #3d3d3c;">
+  <nav class="center-align" style="background-color: #28283d;" role="navigation">
+        <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org"><h4 class="white-text">Virtual Room</h4></a></div>
+    </nav>
+  <nav class="nav" style="background-color: #28283d;" role="navigation">
+    <div class="col s8" style="padding-left: 20%;"> 
+      <ul class="container">
+        <li><span class="flow-text"><a href="index.html"><h4>Home</h4></a></span></li>
+      </ul>
+    </div>
+    <div class="col s2"> 
+      <ul class="container" style="text-align: right;padding-right: 10%;">
         <li onclick="stopWebCam()"><a><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
         <li onclick="stopAudio()"><a><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
         <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
       </ul>
-      <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
     </div>
   </nav>
-
+    
 <!-- Main video stream section -->
+  <div class="col s12" style="background-color: #6e6e6d;">
+    <div class="col s8" style="padding-left: 20%; width: 10%;">
+      <div class="file-field input-field" style="text-align: center;">
+        <div class="btn z-depth-3 col s1">
+            <span><i class='small material-icons'>file_upload</i></span>
+            <input type="file" id="video-file" accept="video">
+        </div>
+        <div class="file-path-wrapper col m5 l5">
+            <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
+        </div>
+      </div>
+    </div>
+  </div>
 
+<!--</div>
   <div class="section no-pad-bot row center" id="main-room-banner">
     <div class="container row center" id="peer-media-banner">
-        <div class="col s12">
+        <div class="col s12" style="background-color: #6e6e6d;">
           <div class="file-field input-field">
             <div class="btn z-depth-3 red darken-4 col s1">
               <span>File</span>
@@ -37,9 +62,9 @@
               <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
             </div>
       <div class="col s6">
-        <div class="col l4 m5" onclick="enableInput()">
+        <div class="col l4 m5" onclick="enableInput()">-->
           <!-- <h5 id="peer-alias">peerID</h5> -->
-          <input class="validate" type="text" id="peer-alias" placeholder="Type your alias" >
+          <!--<input class="validate" type="text" id="peer-alias" placeholder="Type your alias" >
         </div>
         <div class="col l4 m4">
           <div class="btn disabled z-depth-3 red darken-4 col s12" onclick="setAlias()" id="alias-btn">
@@ -55,7 +80,7 @@
           <source id="video-source" type="video/mp4">
         </video>
       </div>
-    </div>
+    </div>-->
 <!-- Video stream section ends -->
 
 <!-- Peer controls of the room -->
@@ -88,12 +113,24 @@
 </div>
 </main>
 
-<!-- Footer -->
-  <footer class="footer-copyright">
-    <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
-  </footer>
-
-
+<footer class="footer">
+    
+        <div class="container">
+            <div class="row">
+                <div class="col s4">
+                    <h5 class="footertext">Powered by</h5> <img class="brand" src="../img/p2psp-2.png">
+                </div>
+                <div class="col s4">
+                    <h5 class="footertext">Source code</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0">Github <i class="fa fa-github" aria-hidden="true"></i></a>
+                </div>
+                <div class="col s4">
+                    <h5 class="footertext">Supported by </h5> <img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250" height="80">
+                    
+                </div>
+            </div>
+        </div>
+    
+</footer>
   <!--  Scripts-->
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/jquery.loadingoverlay/latest/loadingoverlay.min.js"></script>

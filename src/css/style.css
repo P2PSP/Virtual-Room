@@ -30,3 +30,13 @@
  .text-1 {
  	 line-height: 16px;
  }
+
+ /*Estilos Pie de Página*/
+.footer {
+    background-color: #28283d;
+
+  }
+
+  .footertext{
+      color: #ffffff;
+  }
