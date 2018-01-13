@@ -10,6 +10,12 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection" />
     <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+
+    <link rel="stylesheet" href="../css/nivo-slider.css">
+    <link rel="stylesheet" href="../css/mi-slider.css">
+    
+    
+
 </header>
 <body style="background-color: #293958;">
     <nav class="center-align" style="background-color: #28283d;" role="navigation">
@@ -84,11 +90,30 @@
 
         </div>
         <br><br>
+        
 
-        <!--     <div class="section">
-
-    </div> -->
+       
     </div>
+
+    <div class="slider-wrapper theme-mi-slider">
+            <div id="slider" class="nivoSlider">     
+                <img src="http://p2psp.org/images/logoluxundafondoblanco.png" alt="" title="#htmlcaption1" />    
+                <img src="http://p2psp.org/images/logoluxundafondoblanco.png" alt="" title="#htmlcaption2" />    
+                <img src="http://p2psp.org/images/logoluxundafondoblanco.png" alt="" title="#htmlcaption3" />     
+            </div> 
+            <div id="htmlcaption1" class="nivo-html-caption">     
+                <h1>Sean Bienvenidos</h1>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
+            </div>
+            <div id="htmlcaption2" class="nivo-html-caption">     
+                <h1>Acerca de Nosotros</h1>
+            </div>
+            <div id="htmlcaption3" class="nivo-html-caption">     
+                <h1>Gracias por visitar</h1>
+            </div>
+        </div>
+
+
 </body>
 
 <!-- Footer -->
@@ -132,5 +157,14 @@
 <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="../js/materialize.min.js"></script>
 <script src="../js/init.js"></script>
+
+<!-- Scripts Slider -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-nivoslider/3.2/jquery.nivo.slider.js. " type="text/javascript"></script>
+<script type="text/javascript"> 
+    $(window).on('load', function() {
+        $('#slider').nivoSlider(); 
+    }); 
+</script>
 
 </html>
