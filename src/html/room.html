@@ -20,11 +20,11 @@
         <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org"><h4 class="white-text">Virtual Room</h4></a></div>
     </nav>
   <nav class="nav" style="background-color: #28283d;" role="navigation">
-    <div class="col s8" style="padding-left: 20%;"> 
-      <ul class="container">
-        <li><span class="flow-text"><a href="index.html"><h4>Home</h4></a></span></li>
-      </ul>
-    </div>
+      <div class="col s12 m4" style="padding-left: 20%;"> 
+          <ul class="container">
+          <li><span class="flow-text"><a href="index.html"><h4>Home</h4></a></span></li>
+          </ul>
+      </div>
     <div class="col s2"> 
       <ul class="container" style="text-align: right;padding-right: 10%;">
         <li onclick="stopWebCam()"><a><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
@@ -114,22 +114,39 @@
 </main>
 
 <footer class="footer">
-    
+    <div class="center-align">
+        <div class="row">
+            <div class="col s12 m4">
+                <h5 class="footertext">Shortcuts:</h5> 
+                <a href="http://p2psp.org/64-desarrollado-con-el-apoyo-de"><h6>GSoC 2017 Ideas Page</h6></a>
+                <a href="http://p2psp.org/en/news/59-gsoc-application-template"><h6>GSoC Application Template</h6></a>
+                <a href="http://slides.p2psp.org"><h6>Slides</h6></a>
+                <a href="https://gitter.im/P2PSP/home"><h6>P2PSP on Gitter</h6></a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Source code:</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0">Github <i class="fa fa-github" aria-hidden="true"></i></a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Sopported by:</h5><a href="https://www.ual.es/" ><img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250" height="80"></a></a>
+            </div>
+        </div>
+    </div>
+    <div class="center-align">
         <div class="container">
-            <div class="row">
-                <div class="col s4">
-                    <h5 class="footertext">Powered by</h5> <img class="brand" src="../img/p2psp-2.png">
-                </div>
-                <div class="col s4">
-                    <h5 class="footertext">Source code</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0">Github <i class="fa fa-github" aria-hidden="true"></i></a>
-                </div>
-                <div class="col s4">
-                    <h5 class="footertext">Supported by </h5> <img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250" height="80">
-                    
+            <div class="section">
+                <h5 class="footertext">Project developed with the support of:</h5>
+                <br>
+                <div class="row">
+                    <div class="col s12 m6">
+                        <a href="http://www.luxunda.es/" ><img class="brand" src="http://p2psp.org/images/logoluxundafondoblanco.png" width="250" height="80"></a>  
+                    </div>
+                    <div class="col s12 m6">
+                        <a href="https://summerofcode.withgoogle.com/" ><img class="brand" src="http://p2psp.org/images/gsoc15.png" width="250" height="80"></a>
+                    </div>
                 </div>
             </div>
         </div>
-    
+    </div>
 </footer>
   <!--  Scripts-->
   <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>

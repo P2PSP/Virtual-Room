@@ -11,18 +11,25 @@
     <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection" />
     <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
 </header>
-<main>
-    <div class="container col s12 add-height">
-    </div>
-    <div class="section no-pad-bot" id="index-banner">
+<body style="background-color: #293958;">
+    <nav class="center-align" style="background-color: #28283d;" role="navigation">
+        <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org"><h4 class="white-text">Virtual Room</h4></a></div>
+    </nav>
+    <nav class="nav" style="background-color: #28283d;" role="navigation">
+        <div class="col s12 m4" style="padding-left: 10%;"> 
+            <ul class="container">
+            <li><span class="flow-text"><a href="room.html"><h5>Make a Virtual Room</h5></a></span></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="section no-pad-bot" id="index-banner" >
         <div class="container">
-            <br><br>
-            <h1 class="header center red-text">Virtual Room</h1>
+            <h1 class="header center white-text">Virtual Room</h1>
             <div class="row center">
-                <h5 class="header col s12 light">A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time.</h5>
+                <span class="blue-text text-lighten-5"><h5>A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time.</h5></span>
             </div>
             <div class="row center">
-                <a href="/room/" id="enter-room" class="btn-large waves-effect waves-light red">Make a virtual room</a>
+                <a href="room.html" id="enter-room" class="waves-effect waves-light btn-large" style="background-color: #28283d;">Make a virtual room</a>
             </div>
             <br><br>
 
@@ -30,10 +37,10 @@
     </div>
 
     <div class="container">
-        <div class="section">
+        <div class="section" >
 
             <!--   Icon Section   -->
-            <div class="row">
+            <div class="row" style="background-color: #dbdbdb;">
                 <div class="col s12 m6">
                     <div class="icon-block">
                         <h2 class="center light-blue-text"><i class="material-icons">view_stream</i></h2>
@@ -54,7 +61,7 @@
 
             </div>
 
-            <div class="row">
+            <div class="row" style="background-color: #dbdbdb;">
                 <div class="col s12 m6">
                     <div class="icon-block">
                         <h2 class="center light-blue-text"><i class="material-icons">enhanced_encryption</i></h2>
@@ -82,26 +89,43 @@
 
     </div> -->
     </div>
-</main>
+</body>
 
 <!-- Footer -->
 <footer class="footer">
-    
+    <div class="center-align">
+        <div class="row">
+            <div class="col s12 m4">
+                <h5 class="footertext">Shortcuts:</h5> 
+                <a href="http://p2psp.org/64-desarrollado-con-el-apoyo-de"><h6>GSoC 2017 Ideas Page</h6></a>
+                <a href="http://p2psp.org/en/news/59-gsoc-application-template"><h6>GSoC Application Template</h6></a>
+                <a href="http://slides.p2psp.org"><h6>Slides</h6></a>
+                <a href="https://gitter.im/P2PSP/home"><h6>P2PSP on Gitter</h6></a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Source code:</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0">Github <i class="fa fa-github" aria-hidden="true"></i></a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Sopported by:</h5><a href="https://www.ual.es/" ><img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250" height="80"></a></a>
+            </div>
+        </div>
+    </div>
+    <div class="center-align">
         <div class="container">
-            <div class="row">
-                <div class="col s4">
-                    <h5 class="footertext">Powered by</h5> <img class="brand" src="../img/p2psp-2.png">
-                </div>
-                <div class="col s4">
-                    <h5 class="footertext">Source code</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0">Github <i class="fa fa-github" aria-hidden="true"></i></a>
-                </div>
-                <div class="col s4">
-                    <h5 class="footertext">Supported by </h5> <img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250" height="80">
-                    
+            <div class="section">
+                <h5 class="footertext">Project developed with the support of:</h5>
+                <br>
+                <div class="row">
+                    <div class="col s12 m6">
+                        <a href="http://www.luxunda.es/" ><img class="brand" src="http://p2psp.org/images/logoluxundafondoblanco.png" width="250" height="80"></a>  
+                    </div>
+                    <div class="col s12 m6">
+                        <a href="https://summerofcode.withgoogle.com/" ><img class="brand" src="http://p2psp.org/images/gsoc15.png" width="250" height="80"></a>
+                    </div>
                 </div>
             </div>
         </div>
-    
+    </div>
 </footer>
 
 <!--  Scripts-->
