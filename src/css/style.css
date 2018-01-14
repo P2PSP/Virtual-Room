@@ -1,4 +1,6 @@
 /* Custom Stylesheet */
+
+
 /**
  * Use this file to override Materialize files so you can update
  * the core Materialize files in the future
@@ -7,38 +9,98 @@
  */
 
 .icon-block {
-  padding: 0 15px;
+    padding: 0 15px;
 }
+
 .icon-block .material-icons {
-	font-size: inherit;
+    font-size: inherit;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.add-height {
+    height: 85px;
+}
+
+.text-1 {
+    line-height: 16px;
 }
 
 
- body {
-     display: flex;
-     min-height: 100vh;
-     flex-direction: column;
- }
- main {
-     flex: 1 0 auto;
- }
+/*Estilos Pie de Página*/
 
- .add-height {
-     height: 85px;
- }
-
- .text-1 {
- 	 line-height: 16px;
- }
-
-
-
- /*Estilos Pie de Página*/
 .footer {
     background-color: #28283d;
+}
 
-  }
+.footertext {
+    color: #ffffff;
+}
 
-  .footertext{
-      color: #ffffff;
-  }
+.nivoSlider {
+    width: 100%!important;
+    height: 500px!important;
+    overflow: hidden!important;
+}
+
+.nivo-caption {
+    position: absolute!important;
+    background-color: black!important;
+    top: auto!important;
+    opacity: 0.7!important;
+    height: 150px!important;
+    left: 0px!important;
+    bottom: 0px!important;
+    color: #fff!important;
+    width: 100%!important;
+    z-index: 8!important;
+    padding: 5px 10px!important;
+    overflow: hidden!important;
+}
+
+.slider-wrapper.theme-mi-slider {
+    margin-bottom: 30px;
+}
+
+.nivo-caption h1 {
+    font-size: 20px!important;
+    font-weight: 600!important;
+}
+
+.nivo-caption h3 {
+    font-size: 16px!important;
+}
+
+.img-style {
+    border-radius: 3px!important;
+}
+
+.mb30 {
+    margin-bottom: 36px!important;
+}
+
+.logo-p2psp {
+    float: left!important;
+    margin: 0px!important;
+    width: 100px!important;
+    margin-top: 10px!important;
+}
+
+.logo-texto {
+    margin: 0px!important;
+    font-size: 48px!important;
+    line-height: 64px!important;
+}
+
+.footer-item {
+    padding: 20px!important;
+    text-align: center!important;
+}
