@@ -1,159 +1,115 @@
-<!-- The virtual room page of Virtual room -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-  <link href="../css/slider.css" type="text/css" rel="stylesheet" media="screen,projection" />    
-  <title>Virtual Room-P2PSP</title>
 
-  <!-- CSS  -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-  <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+<head style="background-color: #28283d;">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <title>Virtual Room-P2PSP</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link rel="stylesheet" href="../css/nivo-slider.css">
+    <link rel="stylesheet" href="../css/mi-slider.css">
 </head>
 
-<body style="background-color: #3d3d3c;">
-  <nav class="center-align" style="background-color: #28283d;" role="navigation">
-        <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org"><h4 class="white-text">Virtual Room</h4></a></div>
+<body style="background-color: #293958;">
+
+    <nav class="center-align" style="background-color: #252d35;" role="navigation">
+        <a href="http://p2psp.org">
+            <img class="logo-p2psp" src="../img/p2psp-2.png">
+        </a>
+        <h1 class="white-text logo-texto">Virtual Room</h1>
     </nav>
-  <nav class="nav" style="background-color: #28283d;" role="navigation">
-      <div class="col s12 m4" style="padding-left: 20%;"> 
-          <ul class="container">
-          <li><span class="flow-text"><a href="index.html"><h4>Home</h4></a></span></li>
-          </ul>
-      </div>
-    <div class="col s2"> 
-      <ul class="container" style="text-align: right;padding-right: 10%;">
-        <li onclick="stopWebCam()"><a><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
-        <li onclick="stopAudio()"><a><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
-        <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
-      </ul>
-    </div>
-  </nav>
-    
-<!-- Main video stream section -->
-  <div class="col s12" style="background-color: #6e6e6d;">
-    <div class="col s8" style="padding-left: 20%; width: 10%;">
-      <div class="file-field input-field" style="text-align: center;">
-        <div class="btn z-depth-3 col s1">
-            <span><i class='small material-icons'>file_upload</i></span>
-            <input type="file" id="video-file" accept="video">
-        </div>
-        <div class="file-path-wrapper col m5 l5">
-            <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
-        </div>
-      </div>
-    </div>
-  </div>
 
-<!--</div>
-  <div class="section no-pad-bot row center" id="main-room-banner">
-    <div class="container row center" id="peer-media-banner">
-        <div class="col s12" style="background-color: #6e6e6d;">
-          <div class="file-field input-field">
-            <div class="btn z-depth-3 red darken-4 col s1">
-              <span>File</span>
-              <input type="file" id="video-file" accept="video">
-            </div>
-            <div class="file-path-wrapper col m5 l5">
-              <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
-            </div>
-      <div class="col s6">
-        <div class="col l4 m5" onclick="enableInput()">-->
-          <!-- <h5 id="peer-alias">peerID</h5> -->
-          <!--<input class="validate" type="text" id="peer-alias" placeholder="Type your alias" >
+    <nav class="nav" style="background-color: #293958;" role="navigation">
+        <div class="col s12 m4">
+            <ul class="container">
+                <li><a href="index.html" title="Home" style="color:white;"><i class='small material-icons'>home</i></a></li>
+                <li onclick="stopWebCam()"><a><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
+                <li onclick="stopAudio()"><a><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
+                <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
+            </ul>
         </div>
-        <div class="col l4 m4">
-          <div class="btn disabled z-depth-3 red darken-4 col s12" onclick="setAlias()" id="alias-btn">
-            <span class="text-1">Set!</span>
-          </div>
-        </div>
-        <div class="row left col l4 m3 push-l2">
-            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text"><i class="small material-icons">play_arrow</i></span></a>
-        </div>
-      </div>
-      <div class="col s12">
-        <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
-          <source id="video-source" type="video/mp4">
-        </video>
-      </div>
-    </div>-->
-<!-- Video stream section ends -->
+    </nav>
 
-<!-- Peer controls of the room -->
-  <div class="container valign-wrapper col s12">
-      <div class="container col s6 valign-wrapper">
-          <h5 class="row">Share Room</h5>
-            <div class="valign-wrapper">
-              <div class="col s2 push-s11"><a onclick="copyBroadcastURL()">
-                <i class="small material-icons">content_copy</i>
-              </a></div>
-              <div class="col s10 pull-s1">
-              <p id="broadcast-url" class="grey-text">Click the icon to copy the link to clipboard</p>
-              </div>
-            </div>
-        </div>
-        <div class="valign-wrapper row col s6 push-s2">
-          <div class="col s10">
-            <h5 class="grey-text">peer(s): </h5>
-          </div>          
-          <div class="col s2 pull-s4">
-            <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
-          </div>
-        </div>
-         
-        </div>
-        </div>
-
-    </div> 
-  </div>
-</div>
-</main>
-
-<footer class="footer">
-    <div class="center-align">
-        <div class="row">
-            <div class="col s12 m4">
-                <h5 class="footertext">Shortcuts:</h5> 
-                <a href="http://p2psp.org/64-desarrollado-con-el-apoyo-de"><h6>GSoC 2017 Ideas Page</h6></a>
-                <a href="http://p2psp.org/en/news/59-gsoc-application-template"><h6>GSoC Application Template</h6></a>
-                <a href="http://slides.p2psp.org"><h6>Slides</h6></a>
-                <a href="https://gitter.im/P2PSP/home"><h6>P2PSP on Gitter</h6></a>
-            </div>
-            <div class="col s12 m4">
-                <h5 class="footertext">Source code:</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0">Github <i class="fa fa-github" aria-hidden="true"></i></a>
-            </div>
-            <div class="col s12 m4">
-                <h5 class="footertext">Sopported by:</h5><a href="https://www.ual.es/" ><img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250" height="80"></a></a>
-            </div>
-        </div>
-    </div>
-    <div class="center-align">
-        <div class="container">
-            <div class="section">
-                <h5 class="footertext">Project developed with the support of:</h5>
-                <br>
-                <div class="row">
-                    <div class="col s12 m6">
-                        <a href="http://www.luxunda.es/" ><img class="brand" src="http://p2psp.org/images/logoluxundafondoblanco.png" width="250" height="80"></a>  
-                    </div>
-                    <div class="col s12 m6">
-                        <a href="https://summerofcode.withgoogle.com/" ><img class="brand" src="http://p2psp.org/images/gsoc15.png" width="250" height="80"></a>
-                    </div>
+    <div class="col s12" style="background-color: #6e6e6d;">
+        <div class="col s8" style="padding-left: 20%; width: 10%;">
+            <div class="file-field input-field" style="text-align: center;">
+                <div class="btn z-depth-3 col s1">
+                    <span><i class='small material-icons'>file_upload</i></span>
+                    <input type="file" id="video-file" accept="video">
+                </div>
+                <div class="file-path-wrapper col m5 l5">
+                    <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
                 </div>
             </div>
         </div>
     </div>
-</footer>
-  <!--  Scripts-->
-  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/jquery.loadingoverlay/latest/loadingoverlay.min.js"></script>
-  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-  <script src="../js/materialize.min.js"></script>
-  <script src="../js/init.js"></script>
-  <script src="../js/room.js"></script>
-  <script src="../js/mp4box.all.js"></script>
+
+    <div class="container">
+        <div class="row m20">
+            <div class="col s6">
+                <a onclick="copyBroadcastURL()">
+                    <i class="small material-icons white-text" style="float:left;">content_copy</i>
+                    <p id="broadcast-url" class="grey-text dinline">Copy room to clipboard</p>
+                </a>
+            </div>
+            <div class="col s6">
+                <span id="peer-num" class="badge primary white" data-badge-caption="peer(s)" style="float:right;">1</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-item">
+            <div class="row">
+                <div class="col s12 m4">
+                    <h5 class="footertext">Shortcuts:</h5>
+                    <a href="http://p2psp.org/64-desarrollado-con-el-apoyo-de">
+                        <h6>GSoC 2017 Ideas Page</h6>
+                    </a>
+                    <a href="http://p2psp.org/en/news/59-gsoc-application-template">
+                        <h6>GSoC Application Template</h6>
+                    </a>
+                    <a href="http://slides.p2psp.org">
+                        <h6>Slides</h6>
+                    </a>
+                    <a href="https://gitter.im/P2PSP/home">
+                        <h6>P2PSP on Gitter</h6>
+                    </a>
+                </div>
+                <div class="col s12 m4">
+                    <h5 class="footertext">Source code:</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0"><i class="fab fa-github"></i> Github</a>
+                </div>
+                <div class="col s12 m4">
+                    <h5 class="footertext">Sopported by:</h5>
+                    <a href="https://www.ual.es/"><img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250"></a>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="center-align">
+            <div class="container">
+                <h5 class="footertext">Project developed with the support of:</h5>
+                <div class="center-align footer-item">
+                    <div class="col s12 m6">
+                        <a href="http://www.luxunda.es/"><img class="brand img-style z-depth-2" src="http://p2psp.org/images/logoluxundafondoblanco.png" width="200"></a>
+                    </div>
+                    <div class="col s12 m6">
+                        <a href="https://summerofcode.withgoogle.com/"><img class="brand img-style z-depth-2" src="http://p2psp.org/images/gsoc15.png" width="200"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.loadingoverlay/latest/loadingoverlay.min.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+    <script src="../js/materialize.min.js"></script>
+    <script src="../js/init.js"></script>
+    <script src="../js/room.js"></script>
+    <script src="../js/mp4box.all.js"></script>
+
 </html>

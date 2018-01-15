@@ -87,6 +87,14 @@ main {
     margin-bottom: 36px!important;
 }
 
+.m30 {
+    margin: 36px 0px!important;
+}
+
+.m20 {
+    margin: 20px 0px!important;
+}
+
 .logo-p2psp {
     float: left!important;
     margin: 0px!important;
@@ -103,4 +111,12 @@ main {
 .footer-item {
     padding: 20px!important;
     text-align: center!important;
+}
+
+.bgsecundario {
+    background-color: #26a69a!important;
+}
+
+.dinline {
+    display: inline-block;
 }
