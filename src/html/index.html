@@ -1,97 +1,117 @@
-<!-- The landing page of Virtual room -->
 <!DOCTYPE html>
 <html lang="en">
-<header>
+
+<head style="background-color: #28283d;">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
     <title>Virtual Room-P2PSP</title>
-
-    <!-- CSS  -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection" />
     <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection" />
-</header>
-<main>
-    <div class="container col s12 add-height">
-    </div>
+    <link rel="stylesheet" href="../css/nivo-slider.css">
+    <link rel="stylesheet" href="../css/mi-slider.css">
+</head>
+
+<body style="background-color: #293958;">
+
+    <nav class="center-align" style="background-color: #252d35;" role="navigation">
+        <a href="http://p2psp.org">
+            <img class="logo-p2psp" src="../img/p2psp-2.png">
+        </a>
+        <h1 class="white-text logo-texto">Virtual Room</h1>
+    </nav>
+
     <div class="section no-pad-bot" id="index-banner">
         <div class="container">
-            <br><br>
-            <h1 class="header center red-text">Virtual Room</h1>
             <div class="row center">
-                <h5 class="header col s12 light">A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time.</h5>
+                <span class="blue-text text-lighten-5"><h5>A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time.</h5></span>
             </div>
-            <div class="row center">
-                <a href="/room/" id="enter-room" class="btn-large waves-effect waves-light red">Make a virtual room</a>
+            <div class="row center mb30">
+                <a href="room.html" id="enter-room" class="waves-effect waves-light btn-large" style="background-color: #28283d;"><i class="fas fa-video"></i> Make a virtual room</a>
             </div>
-            <br><br>
-
         </div>
     </div>
 
     <div class="container">
-        <div class="section">
-
-            <!--   Icon Section   -->
-            <div class="row">
-                <div class="col s12 m6">
-                    <div class="icon-block">
-                        <h2 class="center light-blue-text"><i class="material-icons">view_stream</i></h2>
-                        <h5 class="center">Stream Private Content</h5>
-
-                        <p class="light">The video streamed remains anonymous as the peer to peer connection is built on browser-to-browser connection. This avoids passing the stream throgh server and maintaining the anonymity of the content</p>
-                    </div>
-                </div>
-
-                <div class="col s12 m6">
-                    <div class="icon-block">
-                        <h2 class="center light-blue-text"><i class="material-icons">group</i></h2>
-                        <h5 class="center">Multiple user conferencing</h5>
-
-                        <p class="light">Get started by clicking make a virtual room. Stream a video and video conference with multiple peers.</p>
-                    </div>
-                </div>
-
+        <div class="slider-wrapper theme-mi-slider">
+            <div id="slider" class="nivoSlider">
+                <img src="https://es.panampost.com/wp-content/uploads/privacidad-internet.jpg" alt="Stream Private Content" title="#titulo1" />
+                <img src="http://imagenes.catholic.net/imagenes_db/6fc72d_tecnologia%20mundial.jpg" alt="Multiple user conferencing" title="#titulo2" />
+                <img src="https://carlosjochoa.files.wordpress.com/2011/06/fotolia_7463176_subscription_l1.jpg" alt="Anonymity of peers" title="#titulo3" />
+                <img src="https://userscontent2.emaze.com/images/5eba8ec3-e618-4971-8180-942769c687aa/3fe128fe1213231730b75fa360285f4b.jpeg" alt="No plugins required" title="#titulo4" />
             </div>
-
-            <div class="row">
-                <div class="col s12 m6">
-                    <div class="icon-block">
-                        <h2 class="center light-blue-text"><i class="material-icons">enhanced_encryption</i></h2>
-                        <h5 class="center">Anonymity of peers</h5>
-
-                        <p class="light">User's anonymity is maintained by taking no information of the peer except the I.P. address and an alias(optional)</p>
-                    </div>
-                </div>
-
-                <div class="col s12 m6">
-                    <div class="icon-block">
-                        <h2 class="center light-blue-text"><i class="material-icons">accessibility</i></h2>
-                        <h5 class="center">No plugins required</h5>
-
-                        <p class="light">No external plugins/softwares are required to stream the content. Press the button and stream!</p>
-                    </div>
-                </div>
-
+            <div id="titulo1" class="nivo-html-caption">
+                <h1 style="color:#FFFFFF;">Stream Private Content</h1>
+                <h3 style="color:#FFFFFF;">The video streamed remains anonymous as the peer to peer connection is built on browser-to-browser connection. This avoids passing the stream throgh server and maintaining the anonymity of the content.</h3>
             </div>
-
+            <div id="titulo2" class="nivo-html-caption">
+                <h1 style="color:#FFFFFF;">Multiple user conferencing</h1>
+                <h3 style="color:#FFFFFF;">Get started by clicking make a virtual room. Stream a video and video conference with multiple peers.</h3>
+            </div>
+            <div id="titulo3" class="nivo-html-caption">
+                <h1 style="color:#FFFFFF;">Anonymity of peers</h1>
+                <h3 style="color:#FFFFFF;">User's anonymity is maintained by taking no information of the peer except the I.P. address and an alias(optional).</h3>
+            </div>
+            <div id="titulo4" class="nivo-html-caption">
+                <h1 style="color:#FFFFFF;">No plugins required</h1>
+                <h3 style="color:#FFFFFF;">No external plugins/softwares are required to stream the content. Press the button and stream!</h3>
+            </div>
         </div>
-        <br><br>
-
-        <!--     <div class="section">
-
-    </div> -->
     </div>
-</main>
+</body>
 
-<!-- Footer -->
-<footer class="footer-copyright">
-    <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
+<footer class="footer">
+    <div class="footer-item">
+        <div class="row">
+            <div class="col s12 m4">
+                <h5 class="footertext">Shortcuts:</h5>
+                <a href="http://p2psp.org/64-desarrollado-con-el-apoyo-de">
+                    <h6>GSoC 2017 Ideas Page</h6>
+                </a>
+                <a href="http://p2psp.org/en/news/59-gsoc-application-template">
+                    <h6>GSoC Application Template</h6>
+                </a>
+                <a href="http://slides.p2psp.org">
+                    <h6>Slides</h6>
+                </a>
+                <a href="https://gitter.im/P2PSP/home">
+                    <h6>P2PSP on Gitter</h6>
+                </a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Source code:</h5> <br> <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0"><i class="fab fa-github"></i> Github</a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Sopported by:</h5>
+                <a href="https://www.ual.es/"><img class="brand" src="http://cms.ual.es/idc/groups/public/@orgob/@gabcomunicacion/documents/imagen/civcentradopng.png" width="250"></a>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="center-align">
+        <div class="container">
+            <h5 class="footertext">Project developed with the support of:</h5>
+            <div class="center-align footer-item">
+                <div class="col s12 m6">
+                    <a href="http://www.luxunda.es/"><img class="brand img-style z-depth-2" src="http://p2psp.org/images/logoluxundafondoblanco.png" width="200"></a>
+                </div>
+                <div class="col s12 m6">
+                    <a href="https://summerofcode.withgoogle.com/"><img class="brand img-style z-depth-2" src="http://p2psp.org/images/gsoc15.png" width="200"></a>
+                </div>
+            </div>
+        </div>
+    </div>
 </footer>
 
-<!--  Scripts-->
 <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="../js/materialize.min.js"></script>
 <script src="../js/init.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-nivoslider/3.2/jquery.nivo.slider.js" type="text/javascript"></script>
+<script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+<script type="text/javascript">
+    $(window).on('load', function() {
+        $('#slider').nivoSlider();
+    });
+</script>
 
 </html>
