@@ -1,11 +1,11 @@
 # What is Virtual-Room?
-A virtual room where friends share videos among them in real time directly over the web browser, with synchronized playback and a video chat at the same time.
+Virtual-Room provides a real-time video sharing platform. Friends can share videos and chat at the same time over a web browser.
 
 # Features
-- Share videos with your family and friends in a sincronized way at the same time that you keep a video-call with them. It's like to watch your favorite videos in the same room but virtually.
-- Peer-to-Peer connection. Data is shared directly among browsers without pass thougth a server.
-- MP4 fragmentation in the browser thanks to [MP4Box.js](https://github.com/gpac/mp4box.js) by Telecom ParisTech/TSI/MM/GPAC Cyril Concolato.
-- Use of cuting edge technologies such as [P2PSP](http://p2psp.org), [WebRTC](https://webrtc.org/) and [MSE](https://www.w3.org/TR/media-source/). 
+- **Real-Time Video Sharing** Share videos with your family and friends in a synchronized way at the same time that you keep a video-call with them. It's like watching your favorite videos in the same room but virtually.
+- **Peer-to-Peer connection** Data is shared directly among browsers without passing through a server.
+- **In browser MP4 fragmentation** Thanks to [MP4Box.js](https://github.com/gpac/mp4box.js) by Telecom ParisTech/TSI/MM/GPAC Cyril Concolato.
+- **Cuting edge technologies** Technologies used are [P2PSP](http://p2psp.org), [WebRTC](https://webrtc.org/) and [MSE](https://www.w3.org/TR/media-source/). 
 
 # Run the project in a built-in web server
 ## Prerequisites

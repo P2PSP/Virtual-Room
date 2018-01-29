@@ -53,6 +53,7 @@
       <div class="col s12">
         <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
           <source id="video-source" type="video/mp4">
+          <track id = "sub" kind="subtitles" label="optional" src="../res/empty.vtt" mode="showing" default></track>
         </video>
       </div>
     </div>
@@ -74,20 +75,21 @@
         <div class="valign-wrapper row col s6 push-s2">
           <div class="col s10">
             <h5 class="grey-text">peer(s): </h5>
-          </div>          
+          </div>
           <div class="col s2 pull-s4">
             <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
           </div>
         </div>
-         
+
         </div>
         </div>
 
-    </div> 
+    </div>
   </div>
 </div>
 </main>
-
+    <input type="file" id="uploadedSubtitles"/>
+    <button id = "button" onclick="sendSubtitles()">Send subtitles</button>
 <!-- Footer -->
   <footer class="footer-copyright">
     <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
