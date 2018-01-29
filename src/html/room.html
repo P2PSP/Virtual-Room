@@ -45,6 +45,12 @@
             </div>
         </div>
     </div>
+    <div class="col s12">
+        <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
+          <source id="video-source" type="video/mp4">
+          <track id = "sub" kind="subtitles" label="optional" src="../res/empty.vtt" mode="showing" default></track>
+        </video>
+    </div>
 
     <div class="container">
         <div class="row m20">
@@ -103,6 +109,14 @@
         </div>
     </footer>
 
+    <input type="file" id="uploadedSubtitles" />
+    <button id="button" onclick="sendSubtitles()">Send subtitles</button>
+    <!-- Footer -->
+    <footer class="footer-copyright">
+        <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
+    </footer>
+
+    <!--  Scripts-->
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/jquery.loadingoverlay/latest/loadingoverlay.min.js"></script>
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
