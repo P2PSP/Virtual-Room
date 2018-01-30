@@ -1007,7 +1007,7 @@ function onReadSubtitles(event, text, srt) {
 		data.textLength=text.length;
 		console.log(text.length);
 		counter=1;
-		addTrackItem(text);
+		//addTrackItem(text);
 	}
 
 	if (text.length > chunkSize) {
@@ -1379,6 +1379,33 @@ function stopAudio(){
 			btn.innerHTML = "<i class="+"'small material-icons'"+">"+"volume_up"+"</i>";
 		}
 	},fallbackUserMedia)
+}
+
+function useLocalSubtitles(){
+	var reader = new window.FileReader();
+	var value = uploadedSubtitles.value;
+	var split=value.split('.');
+	var srt=false;
+	if(split[split.length-1]=="srt"){
+		srt=true;
+	}
+	reader.readAsText(uploadedSubtitles.files[0]);
+	console.log(reader);
+	var text="";
+	reader.onload=function(event){
+		return onReadSubtitlesLocal(event, text, srt);
+	};
+}
+
+function onReadSubtitlesLocal(event, text, srt){
+	if (event){
+		if(srt){
+			text = convert(event.target.result);
+		}else{
+			text = event.target.result;
+		}
+	}
+	addTrackItem(text);
 }
 
 function addTrackItem(subtitleFile){
