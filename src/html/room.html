@@ -24,9 +24,9 @@
                 <ul class="container">
                     <li><a href="index.html" title="Home" style="color:white;"><i class='small material-icons'>home</i></a></li>
                     <li onclick="stopWebCam()"><a><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
-                    <li onclick="stopAudio()"><a><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>              
-                    <li onclick="sendSubtitles()"><a><span id="subtitles" class="white-text text-darken-2"><i class='small material-icons'>subtitles</i></span></a></li>                
-                <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
+                    <li onclick="stopAudio()"><a><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
+                                 
+                    <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
                 </ul>
             </div>
         </div>
@@ -35,16 +35,27 @@
     <div class="col s12" style="padding-right: 10%;">
         <div class="col s12 m3" style="padding-left: 10%;">
             <div class="file-field input-field" style="text-align: center;">
-                <div class="btn z-depth-3 col s12 m3">
+                <div class="btn z-depth-3 col s12 m2">
                     <span><i class='small material-icons'>file_upload</i></span>
-                    <input type="file" id="uploadedSubtitles" accept="video">
+                    <input type="file" id="video-file" accept="video/*">
                 </div>
-                <div class="file-path-wrapper col s12 m5"  >
+                <div class="file-path-wrapper col s12 m3"  >
                     <input class="file-path validate" style="color:white;" type="text" placeholder="Upload a video to stream" disabled="true">
+                </div>
+            </div>
+            <div class="file-field input-field" style="text-align: center;">
+                <div class="btn z-depth-3 col s12 m2" style="color:white;" onclick="enableInput()">
+                    <span><i class='small material-icons'>file_upload</i></span>
+                    <input  type="file" id="uploadedSubtitles" accept="video/*">
+                </div>
+                <div class="file-path-wrapper col s12 m3"  >
+                    <input class="file-path validate" style="color:white;" type="text" placeholder="Subtitle file" disabled="true">
                 </div>
             </div>
         </div>
     </div>
+    <br>
+    <br>
     
     <div class="container">
         <div class="row">
@@ -68,7 +79,13 @@
         </div>
         <div class="row">
             <div class="col s12 m1">
-                <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text"><i class="small material-icons">play_arrow</i></span></a>
+                <a class="btn z-depth-3 col s12" id="stream" onclick="streamVideo()"> <i class="material-icons">play_arrow</i></a>
+                <!--<a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text"><i class="small material-icons">play_arrow</i></span></a>-->
+            </div>
+            <div class="col s12 m1">
+                <div class="btn z-depth-3 col s12" onclick="sendSubtitles()" id="button">
+                    <i class="material-icons">subtitles</i>
+                </div>
             </div>
         </div>
     </div>
