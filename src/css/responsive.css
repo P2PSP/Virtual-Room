@@ -1,0 +1,29 @@
+@media screen and (max-width: 1200px) {}
+
+@media screen and (max-width: 1024px) {}
+
+@media screen and (max-width: 992px) {}
+
+@media screen and (max-width: 768px) {}
+
+@media screen and (max-width: 570px) {
+    .logo-texto {
+        text-align: center;
+    }
+    .logo-img {
+        height: 42px;
+    }
+    .text-description-home h5 {
+        font-size: 1.3rem;
+    }
+    .nivo-caption h1 {
+        font-size: 16px!important;
+    }
+    .nivo-caption h3 {
+        font-size: 14px!important;
+    }
+}
+
+@media screen and (max-width: 480px) {}
+
+@media screen and (max-width: 340px) {}

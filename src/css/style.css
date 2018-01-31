@@ -8,6 +8,48 @@
  * Made By MaterializeCSS.com
  */
 
+head {
+    background-color: #28283d;
+}
+
+body {
+    background-color: #293958;
+}
+
+nav {
+    background-color: #252d35!important;
+}
+
+h1,
+h3 {
+    color: #FFFFFF;
+}
+
+.container-slider {
+    max-width: 1024px!important;
+}
+
+.logo-img {
+    margin: 7px 0px;
+}
+
+.logo-texto {
+    padding-left: 10%;
+}
+
+a.link {
+    transition: all .35s ease-out;
+}
+
+a.link:hover {
+    color: #26a69a;
+    transition: all .15s ease-out;
+}
+
+#enter-room {
+    background-color: #28283d;
+}
+
 .icon-block {
     padding: 0 15px;
 }
@@ -47,7 +89,7 @@ main {
 
 .nivoSlider {
     width: 100%!important;
-    height: 500px!important;
+    height: auto!important;
     overflow: hidden!important;
 }
 
@@ -71,12 +113,12 @@ main {
 }
 
 .nivo-caption h1 {
-    font-size: 20px!important;
+    font-size: 20px;
     font-weight: 600!important;
 }
 
 .nivo-caption h3 {
-    font-size: 16px!important;
+    font-size: 16px;
 }
 
 .img-style {
