@@ -995,14 +995,14 @@ function sendSubtitles(){
 function onReadSubtitles(event, text, srt) {
 	var type = "subtitles";
 	var data = {}; // data object to transmit over data channel
-
-	if (event){
+	if(event){
 		if(srt){
 			text = convert(event.target.result);
 		}else{
 			text = event.target.result;
 		}
-	} // on first invocation
+	}
+  // on first invocation
 	if(counter==0){
 		data.textLength=text.length;
 		console.log(text.length);
@@ -1398,12 +1398,10 @@ function useLocalSubtitles(){
 }
 
 function onReadSubtitlesLocal(event, text, srt){
-	if (event){
-		if(srt){
-			text = convert(event.target.result);
-		}else{
-			text = event.target.result;
-		}
+	if(srt){
+		text = convert(event.target.result);
+	}else{
+		text = event.target.result;
 	}
 	addTrackItem(text);
 }
