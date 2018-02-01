@@ -1,107 +1,213 @@
-<!-- The virtual room page of Virtual room -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
-  <title>Virtual Room-P2PSP</title>
-
-  <!-- CSS  -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="../css/materialize.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
-  <link href="../css/style.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <title>Virtual Room - P2PSP</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="../css/materialize.min.css" type="text/css" media="screen,projection" />
+    <link rel="stylesheet" href="../css/style.css" type="text/css" media="screen,projection" />
+    <link rel="stylesheet" href="../css/responsive.css" type="text/css" media="screen,projection" />
+    <link rel="stylesheet" href="../css/nivo-slider.css" type="text/css">
+    <link rel="stylesheet" href="../css/mi-slider.css" type="text/css">
 </head>
-<main>
-  <nav class="grey darken-4 lighten-1" role="navigation">
-    <div class="nav-wrapper container"><a id="logo-container" href="http://p2psp.org" class="brand-logo"><h4 class="red-text">Virtual Room</h4></a>
-      <ul class="right ">
-        <li onclick="stopWebCam()"><a><span id="stop-video" class="white-text text-darken-2"><i class='small material-icons'>videocam</i></span></a></li>
-        <li onclick="stopAudio()"><a><span id="stop-audio" class="white-text text-darken-2"><i class='small material-icons'>volume_up</i></span></a></li>
-        <li onclick="disconnectPeer()"><a href="../welcome/"><span class="white-text text-darken-2"><i class='small material-icons'>exit_to_app</i></span></a></li>
-      </ul>
-      <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons">menu</i></a>
+
+<body>
+
+    <nav class="left-align" role="navigation">
+        <h1 class="white-text logo-texto">
+            <a href="index.html">
+                <img class="logo-img" title="Virtual Room" src="../img/logo_vrl.png">
+            </a>
+        </h1>
+    </nav>
+
+    <nav class="nav subnav" role="navigation">
+        <div class="row">
+            <div class="col s12">
+                <ul class="container">
+                    <li>
+                        <a href="index.html" title="Home" class="white-text">
+                            <i class='small material-icons'>home</i>
+                        </a>
+                    </li>
+                    <li onclick="stopWebCam()">
+                        <a title="Videocam">
+                            <span id="stop-video" class="white-text text-darken-2">
+                                <i class='small material-icons'>videocam</i>
+                            </span>
+                        </a>
+                    </li>
+                    <li onclick="stopAudio()">
+                        <a title="Volume">
+                            <span id="stop-audio" class="white-text text-darken-2">
+                                <i class='small material-icons'>volume_up</i>
+                            </span>
+                        </a>
+                    </li>
+                    <li onclick="disconnectPeer()">
+                        <a href="../welcome/" title="Exit">
+                            <span class="white-text text-darken-2">
+                                <i class='small material-icons'>exit_to_app</i>
+                            </span>
+                        </a>
+                    </li>
+                    <li style="float:right;">
+                        <a onclick="copyBroadcastURL()" class="copy-clip">
+                            <i class="small material-icons white-text" style="float:left;">content_copy</i>
+                            <span id="broadcast-url" class="white-text dinline">Copy room to clipboard</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row alias-room">
+            <div class="input-field col s8 m10" onclick="enableInput()">
+                <input class="validate" type="text" class="validate" id="peer-alias">
+                <label for="peer-alias">Type your alias</label>
+            </div>
+            <div class="col s4 m2 alias-btn">
+                <div class="btn disabled z-depth-3 red darken-4 col s12" onclick="setAlias()" id="alias-btn">
+                    <span class="text-1">Set!</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </nav>
 
-<!-- Main video stream section -->
-
-  <div class="section no-pad-bot row center" id="main-room-banner">
-    <div class="container row center" id="peer-media-banner">
+    <div class="container">
         <div class="col s12">
-          <div class="file-field input-field">
-            <div class="btn z-depth-3 red darken-4 col s1">
-              <span>File</span>
-              <input type="file" id="video-file" accept="video">
+            <div class="col s6 input-files">
+                <div class="file-field input-field">
+                    <div class="btn z-depth-3 btn-file-room">
+                        <span><i class='small material-icons'>file_upload</i></span>
+                        <input type="file" id="video-file" accept="video/*">
+                    </div>
+                    <div class="file-path-wrapper col s6 m3">
+                        <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
+                    </div>
+                </div>
             </div>
-            <div class="file-path-wrapper col m5 l5">
-              <input class="file-path validate" type="text" placeholder="Upload a video to stream" disabled="true">
+            <div class="col s6 input-files">
+                <div class="file-field input-field">
+                    <div class="btn z-depth-3 btn-file-room" onclick="enableInput()">
+                        <span><i class='small material-icons'>file_upload</i></span>
+                        <input type="file" id="uploadedSubtitles" accept="video/*">
+                    </div>
+                    <div class="file-path-wrapper col s6 m3">
+                        <input class="file-path validate" type="text" placeholder="Subtitle file" disabled="true">
+                    </div>
+                </div>
             </div>
-      <div class="col s6">
-        <div class="col l4 m5" onclick="enableInput()">
-          <!-- <h5 id="peer-alias">peerID</h5> -->
-          <input class="validate" type="text" id="peer-alias" placeholder="Type your alias" >
         </div>
-        <div class="col l4 m4">
-          <div class="btn disabled z-depth-3 red darken-4 col s12" onclick="setAlias()" id="alias-btn">
-            <span class="text-1">Set!</span>
-          </div>
-        </div>
-        <div class="row left col l4 m3 push-l2">
-            <a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text"><i class="small material-icons">play_arrow</i></span></a>
-        </div>
-      </div>
-      <div class="col s12">
-        <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
-          <source id="video-source" type="video/mp4">
-          <track id = "sub" kind="subtitles" label="optional" src="../res/empty.vtt" mode="showing" default></track>
-        </video>
-      </div>
     </div>
-<!-- Video stream section ends -->
 
-<!-- Peer controls of the room -->
-  <div class="container valign-wrapper col s12">
-      <div class="container col s6 valign-wrapper">
-          <h5 class="row">Share Room</h5>
-            <div class="valign-wrapper">
-              <div class="col s2 push-s11"><a onclick="copyBroadcastURL()">
-                <i class="small material-icons">content_copy</i>
-              </a></div>
-              <div class="col s10 pull-s1">
-              <p id="broadcast-url" class="grey-text">Click the icon to copy the link to clipboard</p>
-              </div>
+    <div class="container">
+        <div class="col s12">
+            <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
+              <source id="video-source" type="video/mp4">
+              <track id = "sub" kind="subtitles" label="optional" src="../res/empty.vtt" mode="showing" default></track>
+            </video>
+        </div>
+        <div class="row subvideo">
+            <div class="col s5 m2 l1">
+                <a class="btn z-depth-3 col s12" id="stream" onclick="streamVideo()"> <i class="material-icons">play_arrow</i></a>
+                <!--<a id="stream" onclick="streamVideo()" class="btn disabled brown darken-2"><span class="black-text"><i class="small material-icons">play_arrow</i></span></a>-->
+            </div>
+            <div class="col s5 m2 l1">
+                <div class="btn z-depth-3 col s12" onclick="sendSubtitles()" id="button">
+                    <i class="material-icons">subtitles</i>
+                </div>
+            </div>
+            <div class="col s2 peer-bottom">
+                <span id="peer-num" class="badge primary dark" data-badge-caption="peer(s)">1</span>
             </div>
         </div>
-        <div class="valign-wrapper row col s6 push-s2">
-          <div class="col s10">
-            <h5 class="grey-text">peer(s): </h5>
-          </div>
-          <div class="col s2 pull-s4">
-            <h5 class="large grey-text" id="peer-num"><b>1</b></h5>
-          </div>
-        </div>
-
-        </div>
-        </div>
-
     </div>
-  </div>
-</div>
-</main>
-    <input type="file" id="uploadedSubtitles"/>
-    <button id = "button" onclick="sendSubtitles()">Send subtitles</button>
-<!-- Footer -->
-  <footer class="footer-copyright">
-    <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>
-  </footer>
+
+    <div class="container">
+        <div class="col s12 white-text participants">
+            <i class="small material-icons white-text" style="float:left;">people</i>
+            <p id="participants">Participants</p>
+        </div>
+        <div class="carousel">
+            <a class="carousel-item" href="#1!">
+                <img src="../img/250x200.jpg">
+            </a>
+            <a class="carousel-item" href="#2!">
+                <img src="../img/250x200b.jpg">
+            </a>
+            <a class="carousel-item" href="#3!">
+                <img src="../img/250x200.jpg">
+            </a>
+            <a class="carousel-item" href="#4!">
+                <img src="../img/250x200b.jpg">
+            </a>
+            <a class="carousel-item" href="#5!">
+                <img src="../img/250x200.jpg">
+            </a>
+            <a class="carousel-item" href="#6!">
+                <img src="../img/250x200b.jpg">
+            </a>
+        </div>
+    </div>
+
+</body>
+
+<footer class="footer">
+    <div class="footer-item">
+        <div class="row">
+            <div class="col s12 m4">
+                <h5 class="footertext">Shortcuts:</h5>
+                <a class="link" href="http://p2psp.org/64-desarrollado-con-el-apoyo-de" target="_blank">
+                    <h6>GSoC 2017 Ideas Page</h6>
+                </a>
+                <a class="link" href="http://p2psp.org/en/news/59-gsoc-application-template" target="_blank">
+                    <h6>GSoC Application Template</h6>
+                </a>
+                <a class="link" href="http://slides.p2psp.org" target="_blank">
+                    <h6>Slides</h6>
+                </a>
+                <a class="link" href="https://gitter.im/P2PSP/home" target="_blank">
+                    <h6>P2PSP on Gitter</h6>
+                </a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Source code:</h5>
+                <a href="https://github.com/P2PSP/Virtual-Room" target="_blank" class="btn btn-outline-success my-2 my-sm-0"><i class="fab fa-github"></i> Github</a>
+            </div>
+            <div class="col s12 m4">
+                <h5 class="footertext">Sopported by:</h5>
+                <a href="https://www.ual.es/" target="_blank">
+                    <img class="brand" title="Universidad de Almería" src="../img/civcentradopng.png">
+                </a>
+            </div>
+        </div>
+    </div>
+
+</footer>
 
 
-  <!--  Scripts-->
-  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/jquery.loadingoverlay/latest/loadingoverlay.min.js"></script>
-  <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-  <script src="../js/materialize.min.js"></script>
-  <script src="../js/init.js"></script>
-  <script src="../js/room.js"></script>
-  <script src="../js/mp4box.all.js"></script>
+<!--  Scripts-->
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/jquery.loadingoverlay/latest/loadingoverlay.min.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+<script src="../js/materialize.min.js"></script>
+<script src="../js/init.js"></script>
+<script src="../js/room.js"></script>
+<script src="../js/mp4box.all.js"></script>
+<script type="text/javascript">
+    $(window).on('load', function() {
+        $('.carousel').carousel({
+            dist: 0,
+            shift: 0,
+            padding: 20
+        });
+    });
+</script>
+
 </html>

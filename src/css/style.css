@@ -1,4 +1,6 @@
 /* Custom Stylesheet */
+
+
 /**
  * Use this file to override Materialize files so you can update
  * the core Materialize files in the future
@@ -6,27 +8,227 @@
  * Made By MaterializeCSS.com
  */
 
+head {
+    background-color: #28283d;
+}
+
+body {
+    background-color: #293958;
+}
+
+nav {
+    background-color: #252d35!important;
+}
+
+nav.subnav {
+    background-color: rgba(37, 45, 53, 0.47843137254901963)!important;
+    height: 56px!important;
+}
+
+h1,
+h3 {
+    color: #FFFFFF;
+}
+
+.container-slider {
+    max-width: 1024px!important;
+}
+
+.logo-img {
+    margin: 7px 0px;
+}
+
+.logo-texto {
+    padding-left: 10%;
+}
+
+a.link {
+    transition: all .35s ease-out;
+}
+
+a.link:hover {
+    color: #26a69a;
+    transition: all .15s ease-out;
+}
+
+#enter-room {
+    background-color: #28283d;
+}
+
 .icon-block {
-  padding: 0 15px;
+    padding: 0 15px;
 }
+
 .icon-block .material-icons {
-	font-size: inherit;
+    font-size: inherit;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+.add-height {
+    height: 85px;
+}
+
+.text-1 {
+    line-height: 16px;
 }
 
 
- body {
-     display: flex;
-     min-height: 100vh;
-     flex-direction: column;
- }
- main {
-     flex: 1 0 auto;
- }
+/*Estilos Pie de Página*/
 
- .add-height {
-     height: 85px;
- }
+.footer {
+    background-color: #28283d;
+}
 
- .text-1 {
- 	 line-height: 16px;
- }
+.footertext {
+    color: #ffffff;
+}
+
+.nivoSlider {
+    width: 100%!important;
+    height: auto!important;
+    overflow: hidden!important;
+}
+
+.nivo-caption {
+    position: absolute!important;
+    background-color: black!important;
+    top: auto!important;
+    opacity: 0.7!important;
+    height: 150px!important;
+    left: 0px!important;
+    bottom: 0px!important;
+    color: #fff!important;
+    width: 100%!important;
+    z-index: 8!important;
+    padding: 5px 10px!important;
+    overflow: hidden!important;
+}
+
+.slider-wrapper.theme-mi-slider {
+    margin-bottom: 30px;
+}
+
+.nivo-caption h1 {
+    font-size: 20px;
+    font-weight: 600!important;
+}
+
+.nivo-caption h3 {
+    font-size: 16px;
+}
+
+.img-style {
+    border-radius: 3px!important;
+}
+
+.mb30 {
+    margin-bottom: 36px!important;
+}
+
+.m30 {
+    margin: 36px 0px!important;
+}
+
+.m20 {
+    margin: 20px 0px!important;
+}
+
+.logo-p2psp {
+    float: left!important;
+    margin: 0px!important;
+    width: 100px!important;
+    margin-top: 10px!important;
+}
+
+.logo-texto {
+    margin: 0px!important;
+    font-size: 48px!important;
+    line-height: 64px!important;
+}
+
+.footer-item {
+    padding: 20px!important;
+    text-align: center!important;
+}
+
+.bgsecundario {
+    background-color: #26a69a!important;
+}
+
+.dinline {
+    display: inline-block;
+}
+
+#peer-num {
+    float: right;
+    color: white;
+}
+
+.carousel {
+    height: 200px!important;
+    margin: 20px 0px 40px 0px!important;
+}
+
+.carousel .carousel-item {
+    width: 250px!important;
+    height: 200px!important;
+}
+
+.participants {
+    margin-left: 10px;
+}
+
+p#participants {
+    padding: 5px;
+    margin-left: 5px;
+}
+
+.row.subvideo {
+    margin: 20px 0px 10px 0px!important;
+}
+
+.btn-file-room {
+    height: 2rem!important;
+    line-height: 2rem!important;
+    margin-top: 10px;
+}
+
+.input-files {
+    width: 50%!important;
+    float: left;
+}
+
+.alias-room {
+    margin: 26px 0px 0px 0px!important;
+}
+
+.alias-room .input-field.col.s10 {
+    margin: 0px!important;
+    padding: 0px!important;
+}
+
+.alias-btn {
+    padding-right: 0px!important;
+    margin-top: 10px!important;
+}
+
+a.copy-clip {
+    height: 56px!important;
+}
+
+.col.s2.peer-bottom {
+    float: right;
+}
+
+div#alias-btn {
+    margin-top: 15px;
+}
