@@ -30,3 +30,16 @@ This work is supported by Google Summer of Code 2017 initiative. See it on [GSoC
 Virtual-Room is based on an original idea and several experiments from P2PSP organization, which can be found at [WebRTC P2PSP repository](https://github.com/P2PSP/WebRTC) and [P2PSP WebRTC experiments](https://github.com/cristobalmedinalopez/p2psp-webrtc-experiments)
 
 Enjoy!
+
+WINDOWS VERSION
+
+
+Use xampp to use the php script
+
+install python in local version
+
+Look for the route where you download the script and then start it in the cmd of windows
+
+Run it:
+
+http://127.0.0.1:3000/welcome
