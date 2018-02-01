@@ -20,6 +20,11 @@ nav {
     background-color: #252d35!important;
 }
 
+nav.subnav {
+    background-color: rgba(37, 45, 53, 0.47843137254901963)!important;
+    height: 56px!important;
+}
+
 h1,
 h3 {
     color: #FFFFFF;
@@ -161,4 +166,69 @@ main {
 
 .dinline {
     display: inline-block;
+}
+
+#peer-num {
+    float: right;
+    color: white;
+}
+
+.carousel {
+    height: 200px!important;
+    margin: 20px 0px 40px 0px!important;
+}
+
+.carousel .carousel-item {
+    width: 250px!important;
+    height: 200px!important;
+}
+
+.participants {
+    margin-left: 10px;
+}
+
+p#participants {
+    padding: 5px;
+    margin-left: 5px;
+}
+
+.row.subvideo {
+    margin: 20px 0px 10px 0px!important;
+}
+
+.btn-file-room {
+    height: 2rem!important;
+    line-height: 2rem!important;
+    margin-top: 10px;
+}
+
+.input-files {
+    width: 50%!important;
+    float: left;
+}
+
+.alias-room {
+    margin: 26px 0px 0px 0px!important;
+}
+
+.alias-room .input-field.col.s10 {
+    margin: 0px!important;
+    padding: 0px!important;
+}
+
+.alias-btn {
+    padding-right: 0px!important;
+    margin-top: 10px!important;
+}
+
+a.copy-clip {
+    height: 56px!important;
+}
+
+.col.s2.peer-bottom {
+    float: right;
+}
+
+div#alias-btn {
+    margin-top: 15px;
 }
