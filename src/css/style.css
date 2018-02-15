@@ -30,3 +30,7 @@
  .text-1 {
  	 line-height: 16px;
  }
+
+#video-file {
+	height:3rem;
+}
