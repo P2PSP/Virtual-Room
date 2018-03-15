@@ -741,17 +741,19 @@ function sendChunk(chunk){
 	console.log(peerConnections);
 
 	if(senderID == 0){ // round robin when splitter sends the chunk
-		peerIndex = (chunkNum)%(peerConnections.length);
-		console.log(peerIndex);
-		try{
+		if(peerConnections.length > 0){//check if any exisiting peerConnections
+		 peerIndex = (chunkNum)%(peerConnections.length);
+		 console.log(peerIndex);
+		 try{
 			console.log(peerChannel[peerConnections[peerIndex]]);
 			console.log(chunk.slice(1,2)[0]);
 			peerChannel[peerConnections[peerIndex]].send(chunk);
-		}
-		catch(e){
+		 }
+		 catch(e){
 			console.log(e);
 			Materialize.toast("The peer with ID "+peerConnections[peerIndex]+" has left!", 2000);
-		}
+		 }
+	   }
 	}else{ // when peer transmits their share of chunks to all other peers
 
 		if(peerPending == null){
