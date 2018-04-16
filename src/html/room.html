@@ -53,7 +53,6 @@
       <div class="col s12">
         <video class="responsive-video z-depth-5" width="1280" height="720" id="video-stream">
           <source id="video-source" type="video/mp4">
-          <track id = "sub" kind="subtitles" label="optional" src="../res/empty.vtt" mode="showing" default></track>
         </video>
       </div>
     </div>
@@ -88,8 +87,10 @@
   </div>
 </div>
 </main>
-    <input type="file" id="uploadedSubtitles"/>
+    <input type="file" id="uploadedSubtitles" accept=".srt, .vtt"/>
     <button id = "button" onclick="sendSubtitles()">Send subtitles</button>
+    <button id = "button" onclick="useLocalSubtitles()">Use local subtitles</button>
+
 <!-- Footer -->
   <footer class="footer-copyright">
     <p><b>Powered by <a class="black-text text-lighten-3" href="http://p2psp.org">P2PSP</a></b></p>

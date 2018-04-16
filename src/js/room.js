@@ -49,10 +49,11 @@ var pauseToast;
 var webcamStreams = [];
 
 
-//neustras variables
+//variables for subtitles
 var counter=0;
 var textLength=0;
 var subtitleFile;
+var trackID =0;
 
 console.log(peerID);
 
@@ -977,24 +978,38 @@ function setupChannel(currentPeer){
 };
 
 function sendSubtitles(){
-	uploadSubtitleFile();
 	var reader = new window.FileReader();
+	var value = uploadedSubtitles.value;
+	var split=value.split('.');
+	var srt=false;
+	if(split[split.length-1]=="srt"){
+		srt=true;
+	}
 	reader.readAsText(uploadedSubtitles.files[0]);
 	console.log(reader);
-	reader.onload=onReadSubtitles;
+	var text="";
+	reader.onload=function(event){
+		return onReadSubtitles(event, text, srt);
+	};
+	counter = 0;
 }
 
-function onReadSubtitles(event, text) {
+function onReadSubtitles(event, text, srt) {
 	var type = "subtitles";
 	var data = {}; // data object to transmit over data channel
-
-	if (event){
-		text = event.target.result;
-	} // on first invocation
+	if(event){
+		if(srt){
+			text = convert(event.target.result);
+		}else{
+			text = event.target.result;
+		}
+	}
+  // on first invocation
 	if(counter==0){
 		data.textLength=text.length;
 		console.log(text.length);
 		counter=1;
+		//addTrackItem(text);
 	}
 
 	if (text.length > chunkSize) {
@@ -1007,7 +1022,7 @@ function onReadSubtitles(event, text) {
 	var remainingData = text.slice(data.message.length);
 	if (remainingData.length) setTimeout(function () {
 			onReadSubtitles(null, remainingData); // continue transmitting
-	}, 500);
+	}, 50);
 }
 
 function receiveSubtitles(event) {
@@ -1025,12 +1040,10 @@ function receiveSubtitles(event) {
 	console.log("Received subtitles length: "+subtitleFile.length);
 	console.log("Original subtitles length: "+textLength);
 	if(subtitleFile.length==textLength){
-		console.log("Creating blob");
-		var blob=new Blob([subtitleFile],{type: "text/vtt"});
-		console.log(blob);
-		var trackk = document.getElementById('sub');
-		trackk.src = window.URL.createObjectURL(blob);
-		//vid.play();
+		addTrackItem(subtitleFile);
+		counter=0;
+		subtitleFile="";
+
 	}
 }
 
@@ -1370,12 +1383,121 @@ function stopAudio(){
 	},fallbackUserMedia)
 }
 
-function uploadSubtitleFile(){
-  var input =  document.getElementById('uploadedSubtitles');
-  var vid = document.getElementById('video-stream');
-  var trackk = document.getElementById('sub');
-  // trackk.src = uploadedSubtitles.files[0].toString();
-  var subs =  window.URL.createObjectURL(uploadedSubtitles.files[0]);
-  trackk.src = subs;
-  //vid.play();
+function useLocalSubtitles(){
+	var reader = new window.FileReader();
+	var value = uploadedSubtitles.value;
+	var split=value.split('.');
+	var srt=false;
+	if(split[split.length-1]=="srt"){
+		srt=true;
+	}
+	reader.readAsText(uploadedSubtitles.files[0]);
+	console.log(reader);
+	var text="";
+	reader.onload=function(event){
+		return onReadSubtitlesLocal(event, text, srt);
+	};
+}
+
+function onReadSubtitlesLocal(event, text, srt){
+	if(srt){
+		text = convert(event.target.result);
+	}else{
+		text = event.target.result;
+	}
+	addTrackItem(text);
+}
+
+function addTrackItem(subtitleFile){
+
+	var idTrack = "track"+trackID;
+	var track;
+	if(trackID==0){
+		track = "<track id="+idTrack+" kind='subtitles'  mode='showing' default>";
+	}else{
+		track = "<track id="+idTrack+" kind='subtitles'>";
+	}
+
+	var blob=new Blob([subtitleFile],{type: "text/vtt"});
+
+
+	var htmlTrack = document.getElementById('video-stream').innerHTML;
+
+	document.getElementById('video-stream').innerHTML=htmlTrack+track;
+	var url = window.URL.createObjectURL(blob);
+	document.getElementById(idTrack).src=url;
+
+	trackID++;
+}
+
+function convert(text) {
+	console.log("Convirtiendo srt a vtt");
+	webvtt= srt2webvtt(text);
+	return webvtt;
+}
+
+
+function srt2webvtt(data) {
+	// remove dos newlines
+
+	var srt = data.replace(/\r+/g, '');
+	// trim white space start and end
+
+	srt = srt.replace(/^\s+|\s+$/g, '');
+
+	// get cues
+	var cuelist = srt.split('\n\n');
+
+	var result = "";
+
+	if (cuelist.length > 0) {
+		result += "WEBVTT\n\n";
+		for (var i = 0; i < cuelist.length; i=i+1) {
+			result += convertSrtCue(cuelist[i]);
+		}
+	}
+
+	return result;
+}
+
+function convertSrtCue(caption) {
+	// remove all html tags for security reasons
+	//srt = srt.replace(/<[a-zA-Z\/][^>]*>/g, '');
+
+	var cue = "";
+	var s = caption.split(/\n/);
+	while (s.length > 3) {
+		s[2] += '\n' + s.pop();
+	}
+	var line = 0;
+
+	// detect identifier
+	if (!s[0].match(/\d+:\d+:\d+/) && s[1].match(/\d+:\d+:\d+/)) {
+		cue += s[0].match(/\w+/) + "\n";
+		line += 1;
+	}
+
+	// get time strings
+	if (s[line].match(/\d+:\d+:\d+/)) {
+		// convert time string
+		var m = s[1].match(/(\d+):(\d+):(\d+)(?:,(\d+))?\s*--?>\s*(\d+):(\d+):(\d+)(?:,(\d+))?/);
+		if (m) {
+			cue += m[1]+":"+m[2]+":"+m[3]+"."+m[4]+" --> "
+						+m[5]+":"+m[6]+":"+m[7]+"."+m[8]+"\n";
+			line += 1;
+		} else {
+			// Unrecognized timestring
+			return "";
+		}
+	} else {
+		// file format error or comment lines
+		return "";
+	}
+
+	// get cue text
+	if (s[line]) {
+		cue += s[line] + "\n\n";
+	}
+
+	return cue;
 }
